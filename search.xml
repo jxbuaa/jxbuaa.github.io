@@ -7,6 +7,19 @@
   </entry>
   <entry>
     <title><![CDATA[测试]]></title>
+    <url>%2F2019%2F01%2F13%2FHexo_NexT%E9%85%8D%E7%BD%AE%2F</url>
+    <content type="text"><![CDATA[简介在Java 8中API添加了一个新的抽象称为流Stream，可以让你以一种声明的方式处理数据。在Java中只要你应用的版本是java 8以上的话都能使用该API，但是在Android中如果API低于24时，是无法使用该java API，今天我们来介绍在Android中如何使用Stream，还有常用的操作符。 什么是Stream在操作之前我们来认识一下什么是Stream? 有什么特性呢？ 进入S]]></content>
+      <categories>
+        <category>Blog</category>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
+        <tag>theme</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[测试]]></title>
     <url>%2F2019%2F01%2F13%2F%E6%B5%8B%E8%AF%95%2F</url>
     <content type="text"><![CDATA[简介在Java 8中API添加了一个新的抽象称为流Stream，可以让你以一种声明的方式处理数据。在Java中只要你应用的版本是java 8以上的话都能使用该API，但是在Android中如果API低于24时，是无法使用该java API，今天我们来介绍在Android中如何使用Stream，还有常用的操作符。 什么是Stream在操作之前我们来认识一下什么是Stream? 有什么特性呢？ 进入S]]></content>
       <categories>

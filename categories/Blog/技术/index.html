@@ -316,6 +316,32 @@
 
       <h2 class="post-title">
         
+            <a class="post-title-link" href="/2019/01/13/Hexo_NexT配置/" itemprop="url">
+              
+                <span itemprop="name">测试</span>
+              
+            </a>
+        
+      </h2>
+
+      <div class="post-meta">
+        <time class="post-time" itemprop="dateCreated" datetime="2019-01-13T00:00:00+08:00" content="2019-01-13">
+          01-13
+        </time>
+      </div>
+
+    </header>
+  </article>
+
+
+      
+        
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      <h2 class="post-title">
+        
             <a class="post-title-link" href="/2019/01/13/测试/" itemprop="url">
               
                 <span itemprop="name">测试</span>
@@ -389,7 +415,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">3</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -493,11 +519,21 @@
 
 
 <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-<span id="busuanzi_container_site_uv">访客&nbsp;<span id="busuanzi_value_site_uv"></span>&nbsp;</span>
-<i class="fa fa-user"></i>
+<span id="busuanzi_container_site_uv">
+  <span class="post-meta-item-icon">
+	<i class="fa fa-users" aria-hidden="true"></i>
+  </span>
+  <span id="busuanzi_value_site_uv"></span>
+  <span class="post-meta-divider">|</span>
+</span>
 
-<span id="busuanzi_container_site_pv">&nbsp;访问&nbsp;<span id="busuanzi_value_site_pv"></span>&nbsp;</span>
-<i class="fa fa-eye"></i>
+<span id="busuanzi_container_site_pv">
+  <span class="post-meta-item-icon">
+    <i class="fa fa-eye"></i>
+  </span>	
+  <span id="busuanzi_value_site_pv"></span>
+</span>
+
 
 
 
@@ -650,17 +686,17 @@
   
   <script type="text/javascript">
     var GUEST = ['nick','mail','link'];
-    var guest = 'nick,mail,link';
+    var guest = 'nick,mail';
     guest = guest.split(',').filter(item=>{
       return GUEST.indexOf(item)>-1;
     });
     new Valine({
         el: '#comments' ,
-        verify: true,
-        notify: false,
+        verify: false,
+        notify: true,
         appId: 'cn23HVN0IKR0rQSA2c38g17m-gzGzoHsz',
         appKey: 'VLxyuncdX79weaEiQotR11nN',
-        placeholder: 'comment',
+        placeholder: '欢迎评论，请在上方留下【联系邮箱】，以便收到回复通知~',
         avatar:'mm',
         guest_info:guest,
         pageSize:'10' || 10,

@@ -39,6 +39,35 @@
   
   <entry>
     <title>测试</title>
+    <link href="http://jxbuaa.github.io/2019/01/13/Hexo_NexT%E9%85%8D%E7%BD%AE/"/>
+    <id>http://jxbuaa.github.io/2019/01/13/Hexo_NexT配置/</id>
+    <published>2019-01-12T16:00:00.000Z</published>
+    <updated>2019-01-20T09:16:31.419Z</updated>
+    
+    <content type="html"><![CDATA[<p>简介在Java 8中API添加了一个新的抽象称为流Stream，可以让你以一种声明的方式处理数据。在Java中只要你应用的版本是java 8以上的话都能使用该API，但是在Android中如果API低于24时，是无法使用该java API，今天我们来介绍在Android中如何使用Stream，还有常用的操作符。 什么是Stream在操作之前我们来认识一下什么是Stream? 有什么特性呢？ 进入S</p><p><img src="http://wx4.sinaimg.cn/mw690/6a6ccd8fly1fzd1810psgj211y0lcqgg.jpg" alt=""></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;简介在Java 8中API添加了一个新的抽象称为流Stream，可以让你以一种声明的方式处理数据。在Java中只要你应用的版本是java 8以上的话都能使用该API，但是在Android中如果API低于24时，是无法使用该java API，今天我们来介绍在Android中如
+      
+    
+    </summary>
+    
+      <category term="Blog" scheme="http://jxbuaa.github.io/categories/Blog/"/>
+    
+      <category term="技术" scheme="http://jxbuaa.github.io/categories/Blog/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="hexo" scheme="http://jxbuaa.github.io/tags/hexo/"/>
+    
+      <category term="theme" scheme="http://jxbuaa.github.io/tags/theme/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>测试</title>
     <link href="http://jxbuaa.github.io/2019/01/13/%E6%B5%8B%E8%AF%95/"/>
     <id>http://jxbuaa.github.io/2019/01/13/测试/</id>
     <published>2019-01-12T16:00:00.000Z</published>
