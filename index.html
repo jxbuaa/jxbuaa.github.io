@@ -322,6 +322,204 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://jxbuaa.github.io/2019/01/网卡研究一：驱动框架剖析/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="X小Mickey">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://wx4.sinaimg.cn/mw690/6a6ccd8fly1fzde8xmvg3j20hw0hwdht.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X小Mickey'Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/网卡研究一：驱动框架剖析/" itemprop="url">网卡研究一：驱动框架剖析</a></h1>
+        
+
+        <div class="post-meta">
+		  
+            <i class="fa fa-thumb-tack"></i>
+            <font color="000000">置顶</font>
+            <span class="post-meta-divider">|</span>
+          
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-27T16:49:25+08:00">
+                2019-01-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/技术/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2019/01/网卡研究一：驱动框架剖析/#comments" itemprop="discussionUrl">
+				  <span class="post-meta-item-text">评论数&#58;</span>
+                  <span class="post-comments-count valine-comment-count" data-xid="/2019/01/网卡研究一：驱动框架剖析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2019/01/网卡研究一：驱动框架剖析/" class="leancloud_visitors" data-flag-title="网卡研究一：驱动框架剖析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  3.6k
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本系列计划以<font color="red">优化网卡侧UDP高速小包抓取</font>需求为着力点，<br>从<strong>网卡驱动分析</strong>、<strong>网卡多队列中断均衡优化</strong>、<strong>网卡侧零拷贝抓取</strong>实现三个递进深度详细阐述网卡驱动的工作机制。<br>作为系列第一作，本文以Intel 82580、Intel 82571/4两款网卡为对象，<br>详细分析<strong>网卡驱动的数据结构管理</strong>、<strong>多队列/单队列收发包处理</strong>、<strong>NAPI调用机制</strong>等模块，为后续的优化工作打下基础。<br>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/01/网卡研究一：驱动框架剖析/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </p></div>
+	
+	<div>
+	  
+	</div>
+			
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://jxbuaa.github.io/2019/01/Hexo-NexT主题配置/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -345,6 +543,8 @@
         
 
         <div class="post-meta">
+		  
+
           <span class="post-time">
             
               <span class="post-meta-item-icon">
@@ -455,9 +655,7 @@
 
       
         
-          <h2 id="Hexo-NexT主题定制化修改"><a href="#Hexo-NexT主题定制化修改" class="headerlink" title="Hexo NexT主题定制化修改"></a>Hexo NexT主题定制化修改</h2><p>折腾几天，总算是有了自己的Blog，也算是一个新的开始。</p>
-<p>NexT主题的装修也零零散散花了些时间，期间也参考了不少其他博主的配置，总算</p>
-<p>是部署成自己比较钟意的样式了。<br>
+          <h1 id="Hexo-NexT主题定制化修改"><a href="#Hexo-NexT主题定制化修改" class="headerlink" title="Hexo NexT主题定制化修改"></a>Hexo NexT主题定制化修改</h1><p>折腾几天，总算是有了自己的Blog，也算是一个新的开始。<br>NexT主题的装修也零零散散花了些时间，期间也参考了不少其他博主的配置，总算<br>是部署成自己比较钟意的样式了。<br>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2019/01/Hexo-NexT主题配置/#more" rel="contents">
@@ -551,7 +749,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-count">2</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -562,7 +760,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-count">2</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -573,7 +771,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
