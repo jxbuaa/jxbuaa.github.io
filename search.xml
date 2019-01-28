@@ -27,8 +27,8 @@
       </tags>
   </entry>
   <entry>
-    <title><![CDATA[RIO递归枚举流程]]></title>
-    <url>%2F2019%2F01%2FRIO%E9%80%92%E5%BD%92%E6%9E%9A%E4%B8%BE%E6%B5%81%E7%A8%8B%2F</url>
+    <title><![CDATA[RapidIO递归枚举流程]]></title>
+    <url>%2F2019%2F01%2FRapidIO%E9%80%92%E5%BD%92%E6%9E%9A%E4%B8%BE%E6%B5%81%E7%A8%8B%2F</url>
     <content type="text"><![CDATA[前言简单梳理内核RapidIO递归枚举节点基本流程。 rio_mport_is_active读取0x158 (port0), 0x178 (port1), 0x198 (port2),….0x338 (port15)寄存器来判断该mport对应的port口是否处于active The input and output ports are initialized and the port is exchanging error-free control symbols with the attached device. 枚举时，rio_mport_chk_dev_access通过判断RIO_DEV_ID_CAR（0x0）寄存器的值，来判断对应跳数下的设备是否能够顺利访问 主体枚举函数 1static int rio_enum_peer(struct rio_net *net, struct rio_mport *port,u8 hopcount, struct rio_dev *prev, int prev_port) 找到新设备以后，调用rio_setup_device读取该设备相关属性并建立设备链表节点 4.1 读RIO_PEF_CAR（0x10）判断该设备类型（EP or SWITCH）； 4.2 读取RIO_SWP_INFO_CAR（0x14）判断该SWITCH有多少port，当前维护空间访问的对应port 4.3 读取RIO_DEV_ID_CAR（0x0）设备ID，厂商ID 4.4 如果该设备是SWITCH，则初始化清空路由表 rio_enum_peer判断该设备是否是SWITCH，是则按照port数量建立路由表 5.1 扫描各个port，调用rio_sport_is_active判断交换机的该port是否处于active（同1） 5.1.1 如果交换机的该port是acrive，则添加路由节点至SWITCH寄存器0x70、0x74 ， 并标记（rswitch-&gt;port_ok）。 深度优先，跳数+1，递归调用rio_enum_peer继续在该port下枚举（每个port枚举到底） 5.1.2 如果该port非active，则置位该port的0x15c寄存器Port lockout位, 并标记（rswitch-&gt;port_ok） This port is stopped and is not enabled to issue or receive any packets 结束语discover的流程跟enumerate基本一致。核心思想：深度轮询各个port，往0x70写入id，从0x74读回port值，比对当前轮询的port。]]></content>
       <categories>
         <category>技术</category>
