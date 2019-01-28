@@ -2008,7 +2008,7 @@ pre .javascript .function {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #ff8ead;
+  background: #ffb9e7;
 }
 .links-of-blogroll {
   font-size: 13px;
@@ -3346,6 +3346,7 @@ pre .javascript .function {
 .posts-expand .post-title-link::before {
   height: 1px;
   background-color: rgba(174,50,54,0.85);
+  transition-duration: 0s;
 }
 .posts-expand .post-title-link:hover {
   color: rgba(174,50,54,0.85);
