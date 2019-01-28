@@ -75,7 +75,7 @@
 
 
 
-  <meta name="keywords" content="Linux,Driver,PHY,">
+  <meta name="keywords" content="Driver,Linux,PHY,">
 
 
 
@@ -89,14 +89,14 @@
 
 
 <meta name="description" content="前言简单梳理Linux-3.12.37内核以太网PHY芯片初始化基本流程。">
-<meta name="keywords" content="Linux,Driver,PHY">
+<meta name="keywords" content="Driver,Linux,PHY">
 <meta property="og:type" content="article">
 <meta property="og:title" content="以太网PHY初始化流程">
 <meta property="og:url" content="http://jxbuaa.github.io/2019/01/以太网PHY初始化流程/index.html">
 <meta property="og:site_name" content="X小Mickey&#39;Blog">
 <meta property="og:description" content="前言简单梳理Linux-3.12.37内核以太网PHY芯片初始化基本流程。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-01-28T02:11:52.238Z">
+<meta property="og:updated_time" content="2019-01-28T14:47:13.456Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="以太网PHY初始化流程">
 <meta name="twitter:description" content="前言简单梳理Linux-3.12.37内核以太网PHY芯片初始化基本流程。">
@@ -430,7 +430,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  316
+                  328
                 </span>
               
 
@@ -455,25 +455,8 @@
       
 
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>简单梳理Linux-3.12.37内核以太网PHY芯片初始化基本流程。<br><a id="more"></a><br>Linux-3.12.37 phy驱动匹配流程</p>
-<ol>
-<li>内核扫描设备树mdio节点，匹配【.compatible = “fsl,fman-mdio”,】-&gt;</li>
-<li>调用fsl_pq_mdio_probe() —— Fsl_pq_mdio.c (drivers\net\ethernet\freescale) -&gt;</li>
-<li>调用of_mdiobus_register()注册mdiobus —— Of_mdio.c (drivers\of) -&gt;</li>
-<li>扫描设备树创建struct phy_device *phy设备数据结构 —— Of_mdio.c (drivers\of) -&gt;</li>
-<li>调用phy_device_register()注册phy设备数据结构 —— Phy_device.c (drivers\net\phy) -&gt;</li>
-<li>调用device_add()将phy设备数据结构的dev添加到dev层级 —— Core.c (drivers\base)    -&gt;</li>
-<li>调用bus_probe_device()执行dev和driver的匹配 —— Bus.c (drivers\base) -&gt;</li>
-<li>调用device_attach() Try to attach device to a driver —— Dd.c (drivers\base) -&gt;</li>
-<li>调用bus_for_each_drv(dev-&gt;bus, NULL, dev, __device_attach)枚举注册到mdiobus上的驱动 —— Bus.c (drivers\base) -&gt;</li>
-<li>枚举所有驱动并逐一执行__device_attach()做最后的dev和driver的匹配 —— Dd.c (drivers\base)    -&gt;</li>
-<li>调用driver_match_device()执行drv-&gt;bus-&gt;match —— Base.h (drivers\base) -&gt;</li>
-<li><p>驱动接口实例mdio_bus_match() —— Mdio_bus.c (drivers\net\phy) -&gt;</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">bus_type</span> <span class="title">mdio_bus_type</span> = &#123;</span></span><br><span class="line">	.name		= <span class="string">"mdio_bus"</span>,</span><br><span class="line">	.match		= mdio_bus_match,</span><br><span class="line">	.pm		= MDIO_BUS_PM_OPS,</span><br><span class="line">	.dev_attrs	= mdio_dev_attrs,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>调用mdio_bus_match()设备和驱动的ID匹配上后，执行driver_probe_device()，进行设备和驱动的关联，如果有probe实例，则执行probe函数 —— Dd.c (drivers\base) dev-&gt;driver = drv</p>
-</li>
-</ol>
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>简单梳理Linux-3.12.37内核以太网PHY芯片初始化基本流程。<br><a id="more"></a><br>Linux-3.12.37 phy驱动匹配流程<br>1.内核扫描设备树mdio节点，匹配【.compatible = “fsl,fman-mdio”,】-&gt;<br>2.调用fsl_pq_mdio_probe() —— Fsl_pq_mdio.c (drivers\net\ethernet\freescale) -&gt;<br>3.调用of_mdiobus_register()注册mdiobus —— Of_mdio.c (drivers\of) -&gt;<br>4.扫描设备树创建struct phy_device *phy设备数据结构 —— Of_mdio.c (drivers\of) -&gt;<br>5.调用phy_device_register()注册phy设备数据结构 —— Phy_device.c (drivers\net\phy) -&gt;<br>6.调用device_add()将phy设备数据结构的dev添加到dev层级 —— Core.c (drivers\base)    -&gt;<br>7.调用bus_probe_device()执行dev和driver的匹配 —— Bus.c (drivers\base) -&gt;<br>8.调用device_attach() Try to attach device to a driver —— Dd.c (drivers\base) -&gt;<br>9.调用bus_for_each_drv(dev-&gt;bus, NULL, dev, _device_attach)枚举<br>　注册到mdiobus上的驱动 —— Bus.c (drivers\base) -&gt;<br>10.枚举所有驱动并逐一执行__device_attach()做最后的dev和driver的匹配 —— Dd.c (drivers\base)    -&gt;<br>11.调用driver_match_device()执行drv-&gt;bus-&gt;match —— Base.h (drivers\base) -&gt;<br>12.驱动接口实例mdio_bus_match() —— Mdio_bus.c (drivers\net\phy) -&gt;<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">bus_type</span> <span class="title">mdio_bus_type</span> = &#123;</span></span><br><span class="line">	.name		= <span class="string">"mdio_bus"</span>,</span><br><span class="line">	.match		= mdio_bus_match,</span><br><span class="line">	.pm		= MDIO_BUS_PM_OPS,</span><br><span class="line">	.dev_attrs	= mdio_dev_attrs,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>13.调用mdio_bus_match()设备和驱动的ID匹配上后，执行driver_probe_device()，进行设备和驱动的关联，如果有probe实例，则执行probe函数 —— Dd.c (drivers\base) dev-&gt;driver = drv</p>
 <p>另，ifconfig配IP时，会调用phy_attach()接口，Do initial configuration here</p>
 
       
@@ -550,9 +533,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
-          
             <a href="/tags/Driver/" rel="tag"><i class="fa fa-tag"></i> Driver</a>
+          
+            <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
           
             <a href="/tags/PHY/" rel="tag"><i class="fa fa-tag"></i> PHY</a>
           
@@ -592,6 +575,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/01/Android-5-1设备驱动调试记录/" rel="prev" title="Android 5.1设备驱动调试记录">
+                Android 5.1设备驱动调试记录 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -673,7 +660,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -695,7 +682,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-count">13</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

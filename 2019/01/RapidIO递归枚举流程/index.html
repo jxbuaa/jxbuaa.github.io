@@ -75,7 +75,7 @@
 
 
 
-  <meta name="keywords" content="Linux,Driver,RapidIO,">
+  <meta name="keywords" content="Driver,Linux,RapidIO,">
 
 
 
@@ -89,14 +89,14 @@
 
 
 <meta name="description" content="前言简单梳理内核RapidIO递归枚举节点基本流程。">
-<meta name="keywords" content="Linux,Driver,RapidIO">
+<meta name="keywords" content="Driver,Linux,RapidIO">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RapidIO递归枚举流程">
 <meta property="og:url" content="http://jxbuaa.github.io/2019/01/RapidIO递归枚举流程/index.html">
 <meta property="og:site_name" content="X小Mickey&#39;Blog">
 <meta property="og:description" content="前言简单梳理内核RapidIO递归枚举节点基本流程。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-01-28T02:23:50.578Z">
+<meta property="og:updated_time" content="2019-01-28T14:42:36.720Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RapidIO递归枚举流程">
 <meta name="twitter:description" content="前言简单梳理内核RapidIO递归枚举节点基本流程。">
@@ -430,7 +430,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  398
+                  403
                 </span>
               
 
@@ -455,26 +455,17 @@
       
 
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>简单梳理内核RapidIO递归枚举节点基本流程。<br><a id="more"></a></p>
-<ol>
-<li><p>rio_mport_is_active读取0x158 (port0), 0x178 (port1), 0x198 (port2),….0x338 (port15)寄存器来判断该mport对应的port口是否处于active</p>
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>简单梳理内核RapidIO递归枚举节点基本流程。<br><a id="more"></a><br>1.rio_mport_is_active读取0x158 (port0), 0x178 (port1), 0x198 (port2),….0x338 (port15)寄存器来判断该mport对应的port口是否处于active</p>
 <blockquote>
 <p>The input and output ports are initialized and the port is exchanging error-free control symbols with the attached device.</p>
 </blockquote>
-</li>
-<li><p>枚举时，rio_mport_chk_dev_access通过判断RIO_DEV_ID_CAR（0x0）寄存器的值，来判断对应跳数下的设备是否能够顺利访问</p>
-</li>
-<li><p>主体枚举函数</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">rio_enum_peer</span><span class="params">(struct rio_net *net, struct rio_mport *port,u8 hopcount, struct rio_dev *prev, <span class="keyword">int</span> prev_port)</span></span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>找到新设备以后，调用rio_setup_device读取该设备相关属性并建立设备链表节点<br>　　4.1 读RIO_PEF_CAR（0x10）判断该设备类型（EP or SWITCH）；<br>　　4.2 读取RIO_SWP_INFO_CAR（0x14）判断该SWITCH有多少port，当前维护空间访问的对应port<br>　　4.3 读取RIO_DEV_ID_CAR（0x0）设备ID，厂商ID<br>　　4.4 如果该设备是SWITCH，则初始化清空路由表</p>
-</li>
-<li><p>rio_enum_peer判断该设备是否是SWITCH，是则按照port数量建立路由表<br>　　5.1 扫描各个port，调用rio_sport_is_active判断交换机的该port是否处于active（同1）<br>　　　　5.1.1 如果交换机的该port是acrive，则添加路由节点至SWITCH寄存器0x70、0x74 ，<br>　　　　　　　并标记（rswitch-&gt;port_ok）。<br>　　　　　　　深度优先，跳数+1，递归调用rio_enum_peer继续在该port下枚举（每个port枚举到底）<br>　　　　5.1.2 如果该port非active，则置位该port的0x15c寄存器Port lockout位,<br>　　　　　　　并标记（rswitch-&gt;port_ok）</p>
+<p>2.枚举时，rio_mport_chk_dev_access通过判断RIO_DEV_ID_CAR（0x0）寄存器的值，来判断对应跳数下的设备是否能够顺利访问</p>
+<p>3.主体枚举函数<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">rio_enum_peer</span><span class="params">(struct rio_net *net, struct rio_mport *port,u8 hopcount, struct rio_dev *prev, <span class="keyword">int</span> prev_port)</span></span></span><br></pre></td></tr></table></figure></p>
+<p>4.找到新设备以后，调用rio_setup_device读取该设备相关属性并建立设备链表节点<br>　　4.1 读RIO_PEF_CAR（0x10）判断该设备类型（EP or SWITCH）；<br>　　4.2 读取RIO_SWP_INFO_CAR（0x14）判断该SWITCH有多少port，当前维护空间访问的对应port<br>　　4.3 读取RIO_DEV_ID_CAR（0x0）设备ID，厂商ID<br>　　4.4 如果该设备是SWITCH，则初始化清空路由表</p>
+<p>5.rio_enum_peer判断该设备是否是SWITCH，是则按照port数量建立路由表<br>　　5.1 扫描各个port，调用rio_sport_is_active判断交换机的该port是否处于active（同1）<br>　　　　5.1.1 如果交换机的该port是acrive，则添加路由节点至SWITCH寄存器0x70、0x74 ，<br>　　　　　　　并标记（rswitch-&gt;port_ok）。<br>　　　　　　　深度优先，跳数+1，递归调用rio_enum_peer继续在该port下枚举（每个port枚举到底）<br>　　　　5.1.2 如果该port非active，则置位该port的0x15c寄存器Port lockout位,<br>　　　　　　　并标记（rswitch-&gt;port_ok）</p>
 <blockquote>
 <p>This port is stopped and is not enabled to issue or receive any packets</p>
 </blockquote>
-</li>
-</ol>
 <h1 id="结束语"><a href="#结束语" class="headerlink" title="结束语"></a>结束语</h1><p>discover的流程跟enumerate基本一致。<br>核心思想：深度轮询各个port，往0x70写入id，从0x74读回port值，比对当前轮询的port。</p>
 
       
@@ -551,9 +542,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
-          
             <a href="/tags/Driver/" rel="tag"><i class="fa fa-tag"></i> Driver</a>
+          
+            <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
           
             <a href="/tags/RapidIO/" rel="tag"><i class="fa fa-tag"></i> RapidIO</a>
           
@@ -678,7 +669,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -700,7 +691,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-count">13</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
