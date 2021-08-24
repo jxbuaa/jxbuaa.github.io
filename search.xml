@@ -372,7 +372,7 @@
 <blockquote>
 <p>等后续有空后研究下利用docker镜像管理hexo的部署迁移</p>
 </blockquote>
-<h1 id="解决图床问题"><a href="#解决图床问题" class="headerlink" title="解决图床问题"></a>解决图床问题</h1><p>next 主题，编辑主题目录下的 next/layout/_partials/head.swig 文件，在头部加入下面的 meta 标签<br><code>&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot; /&gt;</code></p>
+<h1 id="解决微相册图床问题"><a href="#解决微相册图床问题" class="headerlink" title="解决微相册图床问题"></a>解决微相册图床问题</h1><p>next 主题，编辑主题目录下的 next/layout/_partials/head.swig 文件，在头部加入下面的 meta 标签<br><code>&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot; /&gt;</code></p>
 ]]></content>
       <categories>
         <category>Blog</category>
