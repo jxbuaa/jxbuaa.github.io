@@ -88,12 +88,12 @@
 
 
 
-<meta name="description" content="前言简单梳理Linux-2-6.23内核，Freescale MPC8548平台初始化及扫描基本流程。">
+<meta name="description" content="前言 简单梳理Linux-2-6.23内核，Freescale MPC8548平台初始化及扫描基本流程。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="PCIE初始化流程">
 <meta property="og:url" content="http://jxbuaa.github.io/2019/01/PCIE%E5%88%9D%E5%A7%8B%E5%8C%96%E6%B5%81%E7%A8%8B/index.html">
 <meta property="og:site_name" content="X小Mickey&#39;Blog">
-<meta property="og:description" content="前言简单梳理Linux-2-6.23内核，Freescale MPC8548平台初始化及扫描基本流程。">
+<meta property="og:description" content="前言 简单梳理Linux-2-6.23内核，Freescale MPC8548平台初始化及扫描基本流程。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2019-01-28T01:53:20.000Z">
 <meta property="article:modified_time" content="2019-01-28T14:43:39.000Z">
@@ -418,21 +418,12 @@
       
 
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>简单梳理Linux-2-6.23内核，Freescale MPC8548平台初始化及扫描基本流程。</p>
-<span id="more"></span>
-<p>Linux-2-6.23内核，Freescale MPC8548平台PCIE扫描<br>1.创建控制器host</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mpc85xx_cds_setup_arch -- Mpc85xx_cds.c (arch\powerpc\platforms\<span class="number">85</span>xx)</span><br><span class="line">fsl_add_bridge -- Fsl_pci.c (arch\powerpc\sysdev)</span><br><span class="line">pcibios_alloc_controller -- Pci-common.c (arch\powerpc\kernel)	</span><br><span class="line">pci_setup_pci_controller -- Pci-common.c (arch\powerpc\kernel)</span><br></pre></td></tr></table></figure>
-
-<p>2.创建总线bus</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pcibios_init -- Pci_32.c (arch\powerpc\kernel)</span><br><span class="line">pci_scan_bus_parented -- Probe.c (drivers\pci)</span><br><span class="line">pci_create_bus -- Probe.c (drivers\pci)	</span><br></pre></td></tr></table></figure>
-
-<p>3.深度扫描设备节点</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">pci_scan_child_bus -- Probe.c (drivers\pci)</span><br><span class="line">pci_scan_slot -- Probe.c (drivers\pci)</span><br><span class="line">pci_scan_single_device -- Probe.c (drivers\pci)</span><br><span class="line">pci_scan_device -- Probe.c (drivers\pci)</span><br><span class="line">alloc_pci_dev -- Probe.c (drivers\pci) -&gt; 创建pcie设备节点</span><br></pre></td></tr></table></figure>
-
-<p>4.扫描结束创建irq映射关系</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">pcibios_fixup_bus -- Pci_32.c (arch\powerpc\kernel)</span><br><span class="line">pci_read_irq_line -- Pci-common.c (arch\powerpc\kernel)	<span class="number">12528</span>	<span class="number">2015</span><span class="number">-12</span><span class="number">-21</span></span><br><span class="line">of_irq_map_pci -- Pci-common.c (arch\powerpc\kernel) -&gt; 从设备树获取irq信息</span><br><span class="line">pci_device_to_OF_node -- Pci_32.c (arch\powerpc\kernel)</span><br><span class="line">pci_busdev_to_OF_node -- Pci_32.c (arch\powerpc\kernel)</span><br><span class="line">irq_create_of_mapping -- Irq.c (arch\powerpc\kernel)	-&gt; 创建虚拟irq 即 virq</span><br><span class="line">	<span class="comment">/* If host has no translation, then we assume interrupt line */</span></span><br><span class="line">	<span class="keyword">if</span> (host-&gt;ops-&gt;xlate == <span class="literal">NULL</span>)</span><br><span class="line">		hwirq = intspec[<span class="number">0</span>];</span><br><span class="line">	virq = irq_create_mapping(host, hwirq)</span><br></pre></td></tr></table></figure>
-
-<p>至此将硬件irq和虚拟irq关联<br>设备在创建驱动时，注册对应该设备的virq</p>
+        <h1 id="前言">前言</h1>
+<p>简单梳理Linux-2-6.23内核，Freescale MPC8548平台初始化及扫描基本流程。 <span id="more"></span> Linux-2-6.23内核，Freescale MPC8548平台PCIE扫描 1.创建控制器host <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mpc85xx_cds_setup_arch -- Mpc85xx_cds.c (arch\powerpc\platforms\<span class="number">85</span>xx)</span><br><span class="line">fsl_add_bridge -- Fsl_pci.c (arch\powerpc\sysdev)</span><br><span class="line">pcibios_alloc_controller -- Pci-common.c (arch\powerpc\kernel)	</span><br><span class="line">pci_setup_pci_controller -- Pci-common.c (arch\powerpc\kernel)</span><br></pre></td></tr></table></figure></p>
+<p>2.创建总线bus <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pcibios_init -- Pci_32.c (arch\powerpc\kernel)</span><br><span class="line">pci_scan_bus_parented -- Probe.c (drivers\pci)</span><br><span class="line">pci_create_bus -- Probe.c (drivers\pci)	</span><br></pre></td></tr></table></figure></p>
+<p>3.深度扫描设备节点 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">pci_scan_child_bus -- Probe.c (drivers\pci)</span><br><span class="line">pci_scan_slot -- Probe.c (drivers\pci)</span><br><span class="line">pci_scan_single_device -- Probe.c (drivers\pci)</span><br><span class="line">pci_scan_device -- Probe.c (drivers\pci)</span><br><span class="line">alloc_pci_dev -- Probe.c (drivers\pci) -&gt; 创建pcie设备节点</span><br></pre></td></tr></table></figure></p>
+<p>4.扫描结束创建irq映射关系 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">pcibios_fixup_bus -- Pci_32.c (arch\powerpc\kernel)</span><br><span class="line">pci_read_irq_line -- Pci-common.c (arch\powerpc\kernel)	<span class="number">12528</span>	<span class="number">2015</span><span class="number">-12</span><span class="number">-21</span></span><br><span class="line">of_irq_map_pci -- Pci-common.c (arch\powerpc\kernel) -&gt; 从设备树获取irq信息</span><br><span class="line">pci_device_to_OF_node -- Pci_32.c (arch\powerpc\kernel)</span><br><span class="line">pci_busdev_to_OF_node -- Pci_32.c (arch\powerpc\kernel)</span><br><span class="line">irq_create_of_mapping -- Irq.c (arch\powerpc\kernel)	-&gt; 创建虚拟irq 即 virq</span><br><span class="line">	<span class="comment">/* If host has no translation, then we assume interrupt line */</span></span><br><span class="line">	<span class="keyword">if</span> (host-&gt;ops-&gt;xlate == <span class="literal">NULL</span>)</span><br><span class="line">		hwirq = intspec[<span class="number">0</span>];</span><br><span class="line">	virq = irq_create_mapping(host, hwirq)</span><br></pre></td></tr></table></figure></p>
+<p>至此将硬件irq和虚拟irq关联 设备在创建驱动时，注册对应该设备的virq</p>
 
       
     </div>

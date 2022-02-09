@@ -88,12 +88,12 @@
 
 
 
-<meta name="description" content="前言简单梳理Linux-3.12.37内核以太网PHY芯片初始化基本流程。">
+<meta name="description" content="前言 简单梳理Linux-3.12.37内核以太网PHY芯片初始化基本流程。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="以太网PHY初始化流程">
 <meta property="og:url" content="http://jxbuaa.github.io/2019/01/%E4%BB%A5%E5%A4%AA%E7%BD%91PHY%E5%88%9D%E5%A7%8B%E5%8C%96%E6%B5%81%E7%A8%8B/index.html">
 <meta property="og:site_name" content="X小Mickey&#39;Blog">
-<meta property="og:description" content="前言简单梳理Linux-3.12.37内核以太网PHY芯片初始化基本流程。">
+<meta property="og:description" content="前言 简单梳理Linux-3.12.37内核以太网PHY芯片初始化基本流程。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2019-01-28T02:05:35.000Z">
 <meta property="article:modified_time" content="2019-01-28T15:26:27.000Z">
@@ -418,11 +418,8 @@
       
 
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>简单梳理Linux-3.12.37内核以太网PHY芯片初始化基本流程。</p>
-<span id="more"></span>
-<p>Linux-3.12.37 phy驱动匹配流程<br>1.内核扫描设备树mdio节点，匹配[.compatible = “fsl,fman-mdio”,]-&gt;<br>2.调用fsl_pq_mdio_probe() —— Fsl_pq_mdio.c (drivers\net\ethernet\freescale) -&gt;<br>3.调用of_mdiobus_register()注册mdiobus —— Of_mdio.c (drivers\of) -&gt;<br>4.扫描设备树创建struct phy_device *phy设备数据结构 —— Of_mdio.c (drivers\of) -&gt;<br>5.调用phy_device_register()注册phy设备数据结构 —— Phy_device.c (drivers\net\phy) -&gt;<br>6.调用device_add()将phy设备数据结构的dev添加到dev层级 —— Core.c (drivers\base)    -&gt;<br>7.调用bus_probe_device()执行dev和driver的匹配 —— Bus.c (drivers\base) -&gt;<br>8.调用device_attach() Try to attach device to a driver —— Dd.c (drivers\base) -&gt;<br>9.调用bus_for_each_drv(dev-&gt;bus, NULL, dev, _device_attach)枚举<br>　注册到mdiobus上的驱动 —— Bus.c (drivers\base) -&gt;<br>10.枚举所有驱动并逐一执行__device_attach()做最后的dev和driver的匹配 —— Dd.c (drivers\base)    -&gt;<br>11.调用driver_match_device()执行drv-&gt;bus-&gt;match —— Base.h (drivers\base) -&gt;<br>12.驱动接口实例mdio_bus_match() —— Mdio_bus.c (drivers\net\phy) -&gt;</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">bus_type</span> <span class="title">mdio_bus_type</span> =</span> &#123;</span><br><span class="line">	.name		= <span class="string">&quot;mdio_bus&quot;</span>,</span><br><span class="line">	.match		= mdio_bus_match,</span><br><span class="line">	.pm		= MDIO_BUS_PM_OPS,</span><br><span class="line">	.dev_attrs	= mdio_dev_attrs,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<p>13.调用mdio_bus_match()设备和驱动的ID匹配上后，执行driver_probe_device()，进行设备和驱动的关联，如果有probe实例，则执行probe函数 —— Dd.c (drivers\base) dev-&gt;driver = drv</p>
+        <h1 id="前言">前言</h1>
+<p>简单梳理Linux-3.12.37内核以太网PHY芯片初始化基本流程。 <span id="more"></span> Linux-3.12.37 phy驱动匹配流程 1.内核扫描设备树mdio节点，匹配[.compatible = &quot;fsl,fman-mdio&quot;,]-&gt; 2.调用fsl_pq_mdio_probe() —— Fsl_pq_mdio.c (drivers) -&gt; 3.调用of_mdiobus_register()注册mdiobus —— Of_mdio.c (drivers) -&gt; 4.扫描设备树创建struct phy_device *phy设备数据结构 —— Of_mdio.c (drivers) -&gt; 5.调用phy_device_register()注册phy设备数据结构 —— Phy_device.c (drivers) -&gt; 6.调用device_add()将phy设备数据结构的dev添加到dev层级 —— Core.c (drivers) -&gt; 7.调用bus_probe_device()执行dev和driver的匹配 —— Bus.c (drivers) -&gt; 8.调用device_attach() Try to attach device to a driver —— Dd.c (drivers) -&gt; 9.调用bus_for_each_drv(dev-&gt;bus, NULL, dev, _device_attach)枚举 　注册到mdiobus上的驱动 —— Bus.c (drivers) -&gt; 10.枚举所有驱动并逐一执行__device_attach()做最后的dev和driver的匹配 —— Dd.c (drivers) -&gt; 11.调用driver_match_device()执行drv-&gt;bus-&gt;match —— Base.h (drivers) -&gt; 12.驱动接口实例mdio_bus_match() —— Mdio_bus.c (drivers) -&gt; <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">bus_type</span> <span class="title">mdio_bus_type</span> =</span> &#123;</span><br><span class="line">	.name		= <span class="string">&quot;mdio_bus&quot;</span>,</span><br><span class="line">	.match		= mdio_bus_match,</span><br><span class="line">	.pm		= MDIO_BUS_PM_OPS,</span><br><span class="line">	.dev_attrs	= mdio_dev_attrs,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure> 13.调用mdio_bus_match()设备和驱动的ID匹配上后，执行driver_probe_device()，进行设备和驱动的关联，如果有probe实例，则执行probe函数 —— Dd.c (drivers) dev-&gt;driver = drv</p>
 <p>另，ifconfig配IP时，会调用phy_attach()接口，Do initial configuration here</p>
 
       
