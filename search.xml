@@ -63,7 +63,7 @@
 <h1 id="如何选择调度器">如何选择调度器</h1>
 <h2 id="调度器框架">调度器框架</h2>
 <p>为了使代码可维护性高、解耦，内核代码中大量使用了面向对象的设计思想，在调度器的设计中也不例外。尽管C没有像C++拥有专有的面向对象的语言特性，但并不妨碍C使用面向对象的思想设计框架结构。</p>
-在调度器的框架结构设计中，使用struct中的函数指针（相当于C++中的虚函数表）实现&quot;多态&quot;概念，搭好框架后，只需要按照各自的调度功能需求实现函数指针的接口即可实现不同功能特性的调度器，这样的设计思想和技巧在内核中随处可见。 <img src="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6d87gw0aj20z60jagpv.jpg" alt="图6" />
+在调度器的框架结构设计中，使用struct中的函数指针（相当于C++中的虚函数表）实现&quot;多态&quot;概念，搭好框架后，只需要按照各自的调度功能需求实现函数指针的接口即可实现不同功能特性的调度器，这样的设计思想和技巧在内核中随处可见。 <img src="https://wx1.sinaimg.cn/large/6a6ccd8fly1gz7jms1zc5j21ip0u0462.jpg" alt="图6" />
 <p align="center">
 图6 调度器框架
 </p>
@@ -104,7 +104,7 @@
 <li>SCHED_IDLE策略是为系统中优先级最低的任务设计的，只有在没有其他任务可运行时，这些任务才有机会运行。</li>
 </ul>
 <h2 id="核心数据结构">核心数据结构</h2>
-为了实现不同调度器的特点，内核采用了红黑树和优先级队列数据结构进行管理，如图7所示： <img src="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6d8a214jj20ya0ifacb.jpg" alt="图7" />
+为了实现不同调度器的特点，内核采用了红黑树和优先级队列数据结构进行管理，如图7所示： <img src="https://wx4.sinaimg.cn/large/6a6ccd8fly1gz7joqzzibj21ip0u0gqh.jpg" alt="图7" />
 <p align="center">
 图7 核心数据结构
 </p>
@@ -238,7 +238,7 @@ vruntime(虚拟运行时间) = wall\_time (实际运行时间) * 1.25^{nice}
 </p>
 <p>对比在CFS调度器，当任务总数增加时，单个任务其在一个调度周期内所能获得的时间片会相应减少直到最小执行时间sched_min_granularity_ns DL调度中的任务的需求就不会受到系统中其他任务的影响，这个特性是Deadline调度器策略最大的优势</p>
 <p>测试：3个线程绑定到core 6，7，三要素属性分别为：[50, 100, 100]; [50, 100, 100]; [20, 100, 100]，cpu占用情况如图9所示：core6 50%；core7 50%；core6 20%</p>
-<img src="https://wx1.sinaimg.cn/mw690/6a6ccd8fly1gz6d8f7c2wj21ep0d9q7y.jpg" alt="图9" />
+<img src="https://wx1.sinaimg.cn/large/6a6ccd8fly1gz6d8f7c2wj21ep0d9q7y.jpg" alt="图9" />
 <p align="center">
 图9 DL调度器测试
 </p>
@@ -255,7 +255,7 @@ vruntime(虚拟运行时间) = wall\_time (实际运行时间) * 1.25^{nice}
 <li>EL2：Hypervisor（虚拟化相关）</li>
 <li>EL3：Noraml world和Secure world的切换 (ARM Trusted Firmware)</li>
 </ul>
-<img src="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6dcxba2qj216j0q5juq.jpg" alt="图11" />
+<img src="https://wx2.sinaimg.cn/large/6a6ccd8fly1gz6dcxba2qj216j0q5juq.jpg" alt="图11" />
 <p align="center">
 图11 ARMv8异常处理流程
 </p>
@@ -265,13 +265,13 @@ vruntime(虚拟运行时间) = wall\_time (实际运行时间) * 1.25^{nice}
 图12 主调度器流程
 </p>
 <h2 id="周期调度器">“周期调度器”</h2>
-<img src="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6dd27hehj213c09s753.jpg" alt="图13" />
+<img src="https://wx1.sinaimg.cn/large/6a6ccd8fly1gz7jk7wuenj21fl0djq4b.jpg" alt="图13" />
 <p align="center">
 图13 周期度器流程
 </p>
 <h1 id="调度器如何调度">调度器如何调度</h1>
 <h2 id="上下文切换">上下文切换</h2>
-<img src="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6dczphf8j20mi0gqdgt.jpg" alt="图12" />
+<img src="https://wx1.sinaimg.cn/large/6a6ccd8fly1gz6dd4fqyxj20te0q040z.jpg" alt="图14" />
 <p align="center">
 图14 上下文切换流程
 </p>
