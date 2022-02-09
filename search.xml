@@ -2,7 +2,7 @@
 <search>
   <entry>
     <title>Linux进程调度器</title>
-    <url>/2021/08/Linux%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%99%A8/</url>
+    <url>/2022/02/Linux%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%99%A8/</url>
     <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本文梳理了Linux进程调度器的框架结构，旨在通过本文阐述Linux进程调度器的基本工作原理。<br>用一句话概括<strong>调度</strong>：cpu按照特定的规则（调度器：CFS / RT / DL）在特定的时机（主调度+周期调度）通过特定的数据结构（priority queue / RB-tree）对数据对象（进程描述符task_struct-&gt;sched_*_entity）的增删改查，以实现对系统任务（task）的调度管理</p>
 <span id="more"></span>
 <p>内核版本：linux-4.9.140</p>
