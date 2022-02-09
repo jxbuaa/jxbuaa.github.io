@@ -16,7 +16,14 @@
 图1 调度器
 </p>
 <h2 id="调度对象">调度对象</h2>
-从内核的角度，调度器管理的是使用task struct数据结构描述的调度对象 调度对象均使用<code>_do_fork()</code>接口创建，代入不同flag的创建不同属性的调度对象，从应用层的角度表现出的就是线程和进程的区别 - 进程创建流程 fork creates a duplicate copy of the calling process as its child. The exec() family of functions replaces the current process image with a new process image wait and exit <img src="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6d1p7hbgj20qn0gyjsq.jpg" alt="图2" />
+<p>从内核的角度，调度器管理的是使用task struct数据结构描述的调度对象 调度对象均使用<code>_do_fork()</code>接口创建，代入不同flag的创建不同属性的调度对象，从应用层的角度表现出的就是线程和进程的区别</p>
+<ul>
+<li>进程创建流程</li>
+</ul>
+<blockquote>
+<p>fork creates a duplicate copy of the calling process as its child. The exec() family of functions replaces the current process image with a new process image wait and exit</p>
+</blockquote>
+<img src="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6d1p7hbgj20qn0gyjsq.jpg" alt="图2" />
 <p align="center">
 图2 进程创建流程
 </p>
@@ -29,19 +36,25 @@
 <p align="center">
 图4 进程线程创建接口
 </p></li>
-<li>User Space</li>
+<li>User Space
+<ul>
 <li>创建进程（fork）</li>
 <li>创建应用层线程（pthread_create）</li>
-<li>Kernel Space</li>
+</ul></li>
+<li>Kernel Space
+<ul>
 <li>创建内核层线程（kernel_thread）</li>
 <li>均调用_do_fork，只是flag不一样</li>
-<li>进程是资源分配的最小单元</li>
-<li>线程是CPU调度的最小单元（从内核角度，线程可以看作一种特殊的进程）</li>
-<li>调度对象的本质：进程描述符struct task_struct数据结构中的struct sched_entity se</li>
-<li>一共包括三类调度实体</li>
+</ul></li>
+<li><p>进程是资源分配的最小单元</p></li>
+<li><p>线程是CPU调度的最小单元（从内核角度，线程可以看作一种特殊的进程）</p></li>
+<li><p>调度对象的本质：进程描述符struct task_struct数据结构中的struct sched_entity se</p></li>
+<li>一共包括三类调度实体
+<ul>
 <li>struct sched_entity se;</li>
 <li>struct sched_rt_entity rt;</li>
 <li>struct sched_dl_entity dl;</li>
+</ul></li>
 </ul>
 <img src="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6d6w9c76j20nr0hn3za.jpg" alt="图5" />
 <p align="center">
@@ -118,7 +131,10 @@ vruntime(虚拟运行时间) = wall\_time (实际运行时间) * \frac{1024}{\fr
 vruntime(虚拟运行时间) = wall\_time (实际运行时间) * 1.25^{nice}
 \]</span></p>
 <blockquote>
-<p>推出: 进程nice越大 → 优先级越低 → vruntime增长越快 → 在相同vruntime下实际占用cpu时间越短 nice = 0时， vruntime(虚拟运行时间) = wall_time (实际运行时间)</p>
+<p>推出: 进程nice越大 → 优先级越低 → vruntime增长越快 → 在相同vruntime下实际占用cpu时间越短</p>
+</blockquote>
+<blockquote>
+<p>nice = 0时， vruntime(虚拟运行时间) = wall_time (实际运行时间)</p>
 </blockquote>
 <p>同时，根据上述转换公式，可以得到分配给进程的<strong>虚拟时间片</strong>计算公式 <span class="math display">\[
 分配给进程的时间(virtual) = \frac{进程的权重 * 调度周期}{就绪队列（runqueue）所有进程权重之和} * \frac{NICE\_0\_LOAD}{weight}
@@ -159,37 +175,63 @@ vruntime(虚拟运行时间) = wall\_time (实际运行时间) * 1.25^{nice}
 </tbody>
 </table>
 <ul>
-<li>进程A：</li>
+<li>进程A：
+<ul>
 <li>权重weight = 1024 / 1.250 = 1024</li>
 <li>调度周期period = sysctl_sched_latency * （1 + log1）= sysctl_sched_latency = 6ms</li>
 <li>真实时间片ideal_runtime = 6ms * 1024 / (1024 + 820) = 3.3ms</li>
 <li>虚拟时间片 = 3.3ms * 1.250 = 3.3ms</li>
 <li>真实步进1ms = 虚拟步进1ms * 1.250 = 虚拟步进1ms</li>
-<li>进程B：</li>
+</ul></li>
+<li>进程B：
+<ul>
 <li>权重weight = 1024 / 1.251 = 820</li>
 <li>调度周期period = sysctl_sched_latency * （1 + log1）= sysctl_sched_latency = 6ms</li>
 <li>真实时间片ideal_runtime = 6ms * 820 / (1024 + 820) = 2.7ms</li>
 <li>虚拟时间片 = 2.7ms * 1.251 = 3.3ms</li>
 <li>真实步进1ms = 虚拟步进1ms * 1.251 = 虚拟步进1.25ms</li>
+</ul></li>
 </ul>
 <p>如上计算，进程A和B的真实时间片根据nice值（权重weight）分配调度周期，二者分配的虚拟时间片相同；</p>
 <p>在1ms真实步进下，进程B的虚拟步进（1.25ms）大于进程A（1ms），更快的用完分配的虚拟时间片，执行时间更短、更快被换出，也即：nice值越高，占用CPU更短</p>
 <h2 id="rt调度器">RT调度器</h2>
 <p>RT：Real Time调度器要素：priority | timeslice（/proc/sys/kernel/sched_rr_timeslice_ms）</p>
 <ul>
-<li>不相同优先级的实时调度线程</li>
+<li>不相同优先级的实时调度线程
+<ul>
 <li>不论是SCHED_RR还是SCHED_FIFO，高优先级线程均能对低优先级线程实施抢占，且在主动放弃CPU之前不会释放占用</li>
-<li>相同优先级的实时调度线程</li>
+</ul></li>
+<li>相同优先级的实时调度线程
+<ul>
 <li>如果同为SCHED_RR线程，线程之间分享时间片，轮转运行。</li>
 <li>如果同为SCHED_FIFO线程，其中之一（谁先运行）会一直运行直到到其主动释放占用CPU，另一个才会执行。即同优先级不会分享时间片</li>
-<li>两个分别为SCHED_RR，SCHED_FIFO线程</li>
+</ul></li>
+<li>两个分别为SCHED_RR，SCHED_FIFO线程
+<ul>
 <li>SCHED_RR线程会分享时间片，即时间片用完后会放弃占用CPU，被SCHED_FIFO线程占用，SCHED_FIFO线程占用后不会和SCHED_RR线程分享时间片，会一直运行到其主动释放占用后，SCHED_RR线程才会再次执行</li>
-<li>两个线程一个为实时调用线程，一个为非实时调用线程、</li>
+</ul></li>
+<li>两个线程一个为实时调用线程，一个为非实时调用线程、
+<ul>
 <li>实时线程不论是何优先级（&gt;0），何种调度方式，都能对非实时线程实施抢占，且不会对非实时线程共享时间片</li>
+</ul></li>
 </ul>
-<p>另： - Round-Robin调度策略的时间片由/proc/sys/kernel/sched_rr_timeslice_ms决定（timeslice必须是tick倍数(1 / CONFIG_HZ_250 = 4ms)） - 输入为ms，输出为滴答数，即写入的参数单位是ms，读出时的单位是当前系统的jiffies - RT进程和普通进程之间存在分配带宽的比例，默认情况是RT:CFS=95:5。 - 可通过/proc/sys/kernel/sched_rt_period_us和/proc/sys/kernel/sched_rt_runtime_us来设置 - 如果设置sched_rt_runtime_us为-1（慎用），则禁止对RT进程的带宽限制，即如果存在RT进程会占满整个CPU且该CPU不在会有调度CFS进程的机会</p>
+<p>另：</p>
+<ul>
+<li>Round-Robin调度策略的时间片由/proc/sys/kernel/sched_rr_timeslice_ms决定（timeslice必须是tick倍数(1 / CONFIG_HZ_250 = 4ms)）
+<ul>
+<li>输入为ms，输出为滴答数，即写入的参数单位是ms，读出时的单位是当前系统的jiffies</li>
+</ul></li>
+<li>RT进程和普通进程之间存在分配带宽的比例，默认情况是RT:CFS=95:5。
+<ul>
+<li>可通过/proc/sys/kernel/sched_rt_period_us和/proc/sys/kernel/sched_rt_runtime_us来设置</li>
+<li>如果设置sched_rt_runtime_us为-1（慎用），则禁止对RT进程的带宽限制，即如果存在RT进程会占满整个CPU且该CPU不在会有调度CFS进程的机会</li>
+</ul></li>
+</ul>
 <h2 id="dl调度器">DL调度器</h2>
-<p>DL：Deadline调度器要素：runtime | deadline | period 在period周期内，抵达deadline前，执行runtime时间 带宽bw = runtime / period 要求1us &lt; runtime &lt;= deadline &lt;= period (if period != 0)</p>
+<p>DL：Deadline调度器要素：runtime | deadline | period</p>
+<p>在period周期内，抵达deadline前，执行runtime时间</p>
+<p>带宽bw = runtime / period</p>
+<p>要求1us &lt; runtime &lt;= deadline &lt;= period (if period != 0)</p>
 <img src="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6d8ciy19j20eh041dg1.jpg" alt="图8" />
 <p align="center">
 图8 DL调度器要素
@@ -245,7 +287,32 @@ vruntime(虚拟运行时间) = wall\_time (实际运行时间) * 1.25^{nice}
 <h1 id="工具介绍">工具介绍</h1>
 <p>trace-cmd &amp; kernelshark</p>
 <h1 id="参考文献">参考文献</h1>
-<p>Linux进程管理 (9)实时调度类分析，以及FIFO和RR对比实验 https://www.cnblogs.com/arnoldlu/p/9025981.html Linux进程调度策略 https://www.cnblogs.com/jacklikedogs/p/4029825.html 试谈Linux下的线程调度-『Linux 源码解析（一）』 https://zhuanlan.zhihu.com/p/58868634 Using KernelShark to analyze the real-time scheduler https://lwn.net/Articles/425583/ ftrace利器之trace-cmd和kernelshark https://www.cnblogs.com/arnoldlu/p/9014365.html kernelshark使用说明 https://kernelshark.org/Documentation.html 进程的创建 https://zhuanlan.zhihu.com/p/185751680 AArch64 Exception and Interrupt Handling https://developer.arm.com/documentation/100933/0100/ linux内核同步机制-RCU（1）系列 https://zhuanlan.zhihu.com/p/347279156 linux程序是如何开始运行的 https://zhuanlan.zhihu.com/p/337477747 内存屏障（Memory Barrier）究竟是个什么鬼 https://zhuanlan.zhihu.com/p/125737864 linux调度子系统6 - 周期调度 timer setup https://zhuanlan.zhihu.com/p/363787529 CFS调度器（1）-基本原理 http://www.wowotech.net/process_management/447.html</p>
+<p>Linux进程管理 (9)实时调度类分析，以及FIFO和RR对比实验</p>
+<p>https://www.cnblogs.com/arnoldlu/p/9025981.html</p>
+<p>Linux进程调度策略</p>
+<p>https://www.cnblogs.com/jacklikedogs/p/4029825.html</p>
+<p>试谈Linux下的线程调度-『Linux 源码解析（一）』</p>
+<p>https://zhuanlan.zhihu.com/p/58868634</p>
+<p>Using KernelShark to analyze the real-time scheduler</p>
+<p>https://lwn.net/Articles/425583/</p>
+<p>ftrace利器之trace-cmd和kernelshark</p>
+<p>https://www.cnblogs.com/arnoldlu/p/9014365.html</p>
+<p>kernelshark使用说明</p>
+<p>https://kernelshark.org/Documentation.html</p>
+<p>进程的创建</p>
+<p>https://zhuanlan.zhihu.com/p/185751680</p>
+<p>AArch64 Exception and Interrupt Handling</p>
+<p>https://developer.arm.com/documentation/100933/0100/</p>
+<p>linux内核同步机制-RCU（1）系列</p>
+<p>https://zhuanlan.zhihu.com/p/347279156</p>
+<p>linux程序是如何开始运行的</p>
+<p>https://zhuanlan.zhihu.com/p/337477747</p>
+<p>内存屏障（Memory Barrier）究竟是个什么鬼</p>
+<p>https://zhuanlan.zhihu.com/p/125737864</p>
+<p>linux调度子系统6 - 周期调度 timer setup</p>
+<p>https://zhuanlan.zhihu.com/p/363787529</p>
+<p>CFS调度器（1）-基本原理</p>
+<p>http://www.wowotech.net/process_management/447.html</p>
 ]]></content>
       <categories>
         <category>技术</category>
@@ -434,25 +501,28 @@ vruntime(虚拟运行时间) = wall\_time (实际运行时间) * 1.25^{nice}
 <ul>
 <li><strong>Linux线程、进程区别，进程间通信用过哪些</strong> 线程间共享虚拟内存空间，是CPU的最小调度单元 进程各自独占虚拟内存空间，是CPU的最小资源分配单元，一个进程可以拥有多个线程 另：线程和进程在内核中统一使用struct task_struct描述符管理，从内核角度进程和线程统称为task，均使用_do_fork带入不同的flag创建</li>
 </ul>
-[图1][2]
+<img src="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6d6w9c76j20nr0hn3za.jpg" alt="图1" />
 <p align="center">
 图1 task创建图
 </p>
 <ul>
-<li><strong>Linux进程间通信用过哪些</strong></li>
+<li><strong>Linux进程间通信用过哪些</strong>
+<ul>
 <li>unix域套接字socket，相对网络套接字性能更高</li>
 <li>网络套接字</li>
 <li>message queue</li>
 <li>share mem</li>
 <li>pipe</li>
-<li><p>fifo</p></li>
+<li>fifo</li>
+</ul></li>
 <li><p><strong>Linux查看当前系统运行的进程信息的命令</strong> 可以使用top或者ps命令查看 top指令的表头含义 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">PID — 进程id</span><br><span class="line">USER — 进程所有者</span><br><span class="line">PR — 进程优先级</span><br><span class="line">NI — nice值，CFS调度器使用，值越高优先级越低</span><br><span class="line">VIRT — 进程使用的虚拟内存总量，单位kb。VIRT=SWAP+RES</span><br><span class="line">RES — 进程使用的、未被换出的物理内存大小，单位kb，RES=CODE+DATA</span><br><span class="line">SHR — 共享内存大小，单位kb</span><br><span class="line">S —进程状态。D=不可中断的睡眠状态 R=运行 S=睡眠 T=跟踪/停止 Z=僵尸进程</span><br><span class="line"><span class="meta">%</span><span class="bash">CPU — 上次更新到现在的CPU时间占用百分比</span></span><br><span class="line"><span class="meta">%</span><span class="bash">MEM — 进程使用的物理内存百分比</span></span><br><span class="line">TIME+ — 进程使用的CPU时间总计，单位1/100秒</span><br><span class="line">COMMAND — 进程名称（命令名/命令行）</span><br></pre></td></tr></table></figure></p></li>
 <li><p><strong>Linux如何用命令判断文件1.dat中是否含有”abc”字符串</strong> 这里主要是为了考察grep指令，在linux环境下开发，grep指令太重要了，必须掌握 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">grep -nr &quot;abc&quot; 1.dat</span><br></pre></td></tr></table></figure></p></li>
 <li><p><strong>Linux硬盘挂载指令</strong> <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">挂载指令：mount</span><br><span class="line">查看系统挂载点：cat /proc/mounts</span><br><span class="line">查看挂载点的使用情况：df -h</span><br><span class="line">查看快设备节点的信息：blkid, lsblk</span><br></pre></td></tr></table></figure></p></li>
 <li><p><strong>Linux如何查看网络连接状况，如何查看系统都开启了哪些端口</strong> <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ifconfig, ip</span><br><span class="line">netstat</span><br></pre></td></tr></table></figure></p></li>
 </ul>
 <h1 id="开发经验">开发经验</h1>
-<p>推荐：如何优雅的调试段错误 https://cloud.tencent.com/developer/article/1629269</p>
+<p>推荐：如何优雅的调试段错误</p>
+<p>https://cloud.tencent.com/developer/article/1629269</p>
 <h1 id="面试沟通技巧">面试沟通技巧</h1>
 <ul>
 <li>不要轻易放弃，抗住压力，有时候一些偏难的题目可能只是面试官在探查你的技能掌握深度</li>

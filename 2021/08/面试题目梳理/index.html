@@ -95,12 +95,14 @@
 <meta property="og:site_name" content="X小Mickey&#39;Blog">
 <meta property="og:description" content="前言 正值秋招面试季，梳理了一些常见的面试题。">
 <meta property="og:locale">
+<meta property="og:image" content="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6d6w9c76j20nr0hn3za.jpg">
 <meta property="article:published_time" content="2021-08-28T08:49:25.000Z">
-<meta property="article:modified_time" content="2021-09-17T06:58:00.226Z">
+<meta property="article:modified_time" content="2022-02-09T08:24:35.761Z">
 <meta property="article:author" content="X小Mickey">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="面试">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6d6w9c76j20nr0hn3za.jpg">
 
 
 
@@ -593,25 +595,28 @@
 <ul>
 <li><strong>Linux线程、进程区别，进程间通信用过哪些</strong> 线程间共享虚拟内存空间，是CPU的最小调度单元 进程各自独占虚拟内存空间，是CPU的最小资源分配单元，一个进程可以拥有多个线程 另：线程和进程在内核中统一使用struct task_struct描述符管理，从内核角度进程和线程统称为task，均使用_do_fork带入不同的flag创建</li>
 </ul>
-[图1][2]
+<img src="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6d6w9c76j20nr0hn3za.jpg" alt="图1" />
 <p align="center">
 图1 task创建图
 </p>
 <ul>
-<li><strong>Linux进程间通信用过哪些</strong></li>
+<li><strong>Linux进程间通信用过哪些</strong>
+<ul>
 <li>unix域套接字socket，相对网络套接字性能更高</li>
 <li>网络套接字</li>
 <li>message queue</li>
 <li>share mem</li>
 <li>pipe</li>
-<li><p>fifo</p></li>
+<li>fifo</li>
+</ul></li>
 <li><p><strong>Linux查看当前系统运行的进程信息的命令</strong> 可以使用top或者ps命令查看 top指令的表头含义 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">PID — 进程id</span><br><span class="line">USER — 进程所有者</span><br><span class="line">PR — 进程优先级</span><br><span class="line">NI — nice值，CFS调度器使用，值越高优先级越低</span><br><span class="line">VIRT — 进程使用的虚拟内存总量，单位kb。VIRT=SWAP+RES</span><br><span class="line">RES — 进程使用的、未被换出的物理内存大小，单位kb，RES=CODE+DATA</span><br><span class="line">SHR — 共享内存大小，单位kb</span><br><span class="line">S —进程状态。D=不可中断的睡眠状态 R=运行 S=睡眠 T=跟踪/停止 Z=僵尸进程</span><br><span class="line"><span class="meta">%</span><span class="bash">CPU — 上次更新到现在的CPU时间占用百分比</span></span><br><span class="line"><span class="meta">%</span><span class="bash">MEM — 进程使用的物理内存百分比</span></span><br><span class="line">TIME+ — 进程使用的CPU时间总计，单位1/100秒</span><br><span class="line">COMMAND — 进程名称（命令名/命令行）</span><br></pre></td></tr></table></figure></p></li>
 <li><p><strong>Linux如何用命令判断文件1.dat中是否含有”abc”字符串</strong> 这里主要是为了考察grep指令，在linux环境下开发，grep指令太重要了，必须掌握 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grep -nr &quot;abc&quot; 1.dat</span><br></pre></td></tr></table></figure></p></li>
 <li><p><strong>Linux硬盘挂载指令</strong> <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">挂载指令：mount</span><br><span class="line">查看系统挂载点：cat /proc/mounts</span><br><span class="line">查看挂载点的使用情况：df -h</span><br><span class="line">查看快设备节点的信息：blkid, lsblk</span><br></pre></td></tr></table></figure></p></li>
 <li><p><strong>Linux如何查看网络连接状况，如何查看系统都开启了哪些端口</strong> <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ifconfig, ip</span><br><span class="line">netstat</span><br></pre></td></tr></table></figure></p></li>
 </ul>
 <h1 id="开发经验">开发经验</h1>
-<p>推荐：如何优雅的调试段错误 https://cloud.tencent.com/developer/article/1629269</p>
+<p>推荐：如何优雅的调试段错误</p>
+<p>https://cloud.tencent.com/developer/article/1629269</p>
 <h1 id="面试沟通技巧">面试沟通技巧</h1>
 <ul>
 <li>不要轻易放弃，抗住压力，有时候一些偏难的题目可能只是面试官在探查你的技能掌握深度</li>
