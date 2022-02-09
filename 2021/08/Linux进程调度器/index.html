@@ -75,7 +75,7 @@
 
 
 
-  <meta name="keywords" content="Driver,Linux,NIC," />
+  <meta name="keywords" content="Linux,Scheduler," />
 
 
 
@@ -88,26 +88,34 @@
 
 
 
-<meta name="description" content="前言本系列计划以优化网卡侧UDP高速小包抓取需求为着力点，从网卡驱动分析、网卡多队列中断均衡优化、网卡侧零拷贝抓取实现三个递进深度详细阐述网卡驱动的工作机制。作为系列第一作，本文以Intel 82580、Intel 82571&#x2F;4两款网卡为对象，详细分析网卡驱动的数据结构管理、多队列&#x2F;单队列收发包处理、NAPI调用机制等模块，为后续的优化工作打下基础。">
+<meta name="description" content="前言本文梳理了Linux进程调度器的框架结构，旨在通过本文阐述Linux进程调度器的基本工作原理。用一句话概括调度：cpu按照特定的规则（调度器：CFS &#x2F; RT &#x2F; DL）在特定的时机（主调度+周期调度）通过特定的数据结构（priority queue &#x2F; RB-tree）对数据对象（进程描述符task_struct-&gt;sched_*_entity）的增删改查，以实现对系统任务（task）">
 <meta property="og:type" content="article">
-<meta property="og:title" content="网卡研究一：驱动框架剖析">
-<meta property="og:url" content="http://jxbuaa.github.io/2019/01/%E7%BD%91%E5%8D%A1%E7%A0%94%E7%A9%B6%E4%B8%80%EF%BC%9A%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6%E5%89%96%E6%9E%90/index.html">
+<meta property="og:title" content="Linux进程调度器">
+<meta property="og:url" content="http://jxbuaa.github.io/2021/08/Linux%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%99%A8/index.html">
 <meta property="og:site_name" content="X小Mickey&#39;Blog">
-<meta property="og:description" content="前言本系列计划以优化网卡侧UDP高速小包抓取需求为着力点，从网卡驱动分析、网卡多队列中断均衡优化、网卡侧零拷贝抓取实现三个递进深度详细阐述网卡驱动的工作机制。作为系列第一作，本文以Intel 82580、Intel 82571&#x2F;4两款网卡为对象，详细分析网卡驱动的数据结构管理、多队列&#x2F;单队列收发包处理、NAPI调用机制等模块，为后续的优化工作打下基础。">
+<meta property="og:description" content="前言本文梳理了Linux进程调度器的框架结构，旨在通过本文阐述Linux进程调度器的基本工作原理。用一句话概括调度：cpu按照特定的规则（调度器：CFS &#x2F; RT &#x2F; DL）在特定的时机（主调度+周期调度）通过特定的数据结构（priority queue &#x2F; RB-tree）对数据对象（进程描述符task_struct-&gt;sched_*_entity）的增删改查，以实现对系统任务（task）">
 <meta property="og:locale">
-<meta property="og:image" content="http://wx1.sinaimg.cn/mw690/6a6ccd8fly1fzl8damuxlj20nx0h2n01.jpg">
-<meta property="og:image" content="http://wx4.sinaimg.cn/mw690/6a6ccd8fly1fzl8ddejr0j21790qymzg.jpg">
-<meta property="og:image" content="http://wx3.sinaimg.cn/mw690/6a6ccd8fly1fzl9galhi2j20qh0b4q3o.jpg">
-<meta property="og:image" content="http://wx4.sinaimg.cn/mw690/6a6ccd8fly1fzl8dl4ydpj217b0q5teu.jpg">
-<meta property="og:image" content="http://wx3.sinaimg.cn/mw690/6a6ccd8fly1fzl8f0dpw6j20ty0qodip.jpg">
-<meta property="article:published_time" content="2019-01-27T08:49:25.000Z">
-<meta property="article:modified_time" content="2021-08-25T03:08:42.221Z">
+<meta property="og:image" content="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6d1l2w4tj20rb0ekwfc.jpg">
+<meta property="og:image" content="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6d1p7hbgj20qn0gyjsq.jpg">
+<meta property="og:image" content="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6d6puj9nj20hu0itjs2.jpg">
+<meta property="og:image" content="https://wx4.sinaimg.cn/mw690/6a6ccd8fly1gz6d6tcns7j20hs0p8dk5.jpg">
+<meta property="og:image" content="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6d6w9c76j20nr0hn3za.jpg">
+<meta property="og:image" content="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6d87gw0aj20z60jagpv.jpg">
+<meta property="og:image" content="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6d8a214jj20ya0ifacb.jpg">
+<meta property="og:image" content="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6d8ciy19j20eh041dg1.jpg">
+<meta property="og:image" content="https://wx1.sinaimg.cn/mw690/6a6ccd8fly1gz6d8f7c2wj21ep0d9q7y.jpg">
+<meta property="og:image" content="https://wx1.sinaimg.cn/mw690/6a6ccd8fly1gz6d8hck0tj20vj0jx76z.jpg">
+<meta property="og:image" content="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6dcxba2qj216j0q5juq.jpg">
+<meta property="og:image" content="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6dczphf8j20mi0gqdgt.jpg">
+<meta property="og:image" content="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6dd27hehj213c09s753.jpg">
+<meta property="og:image" content="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6dczphf8j20mi0gqdgt.jpg">
+<meta property="article:published_time" content="2021-08-25T03:00:00.000Z">
+<meta property="article:modified_time" content="2022-02-09T02:59:40.365Z">
 <meta property="article:author" content="X小Mickey">
-<meta property="article:tag" content="Driver">
 <meta property="article:tag" content="Linux">
-<meta property="article:tag" content="NIC">
+<meta property="article:tag" content="Scheduler">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://wx1.sinaimg.cn/mw690/6a6ccd8fly1fzl8damuxlj20nx0h2n01.jpg">
+<meta name="twitter:image" content="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6d1l2w4tj20rb0ekwfc.jpg">
 
 
 
@@ -137,7 +145,7 @@
 
 
 
-  <link rel="canonical" href="http://jxbuaa.github.io/2019/01/网卡研究一：驱动框架剖析/"/>
+  <link rel="canonical" href="http://jxbuaa.github.io/2021/08/Linux进程调度器/"/>
 
 
 
@@ -151,7 +159,7 @@
   daovoice('update');
   </script>
 
-  <title>网卡研究一：驱动框架剖析 | X小Mickey'Blog</title>
+  <title>Linux进程调度器 | X小Mickey'Blog</title>
   
 
 
@@ -333,7 +341,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://jxbuaa.github.io/2019/01/%E7%BD%91%E5%8D%A1%E7%A0%94%E7%A9%B6%E4%B8%80%EF%BC%9A%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6%E5%89%96%E6%9E%90/">
+    <link itemprop="mainEntityOfPage" href="http://jxbuaa.github.io/2021/08/Linux%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%99%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -350,11 +358,15 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">网卡研究一：驱动框架剖析</h1>
+          <h1 class="post-title" itemprop="name headline">Linux进程调度器</h1>
         
 
         <div class="post-meta">
 		  
+            <i class="fa fa-thumb-tack"></i>
+            <font color=000000>置顶</font>
+            <span class="post-meta-divider">|</span>
+          
 
           <span class="post-time">
             
@@ -364,8 +376,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-27T16:49:25+08:00">
-                2019-01-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-08-25T11:00:00+08:00">
+                2021-08-25
               </time>
             
 
@@ -424,47 +436,199 @@
       
 
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本系列计划以<font color=red>优化网卡侧UDP高速小包抓取</font>需求为着力点，<br>从<strong>网卡驱动分析</strong>、<strong>网卡多队列中断均衡优化</strong>、<strong>网卡侧零拷贝抓取</strong>实现三个递进深度详细阐述网卡驱动的工作机制。<br>作为系列第一作，本文以Intel 82580、Intel 82571/4两款网卡为对象，<br>详细分析<strong>网卡驱动的数据结构管理</strong>、<strong>多队列/单队列收发包处理</strong>、<strong>NAPI调用机制</strong>等模块，为后续的优化工作打下基础。</p>
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本文梳理了Linux进程调度器的框架结构，旨在通过本文阐述Linux进程调度器的基本工作原理。<br>用一句话概括<strong>调度</strong>：cpu按照特定的规则（调度器：CFS / RT / DL）在特定的时机（主调度+周期调度）通过特定的数据结构（priority queue / RB-tree）对数据对象（进程描述符task_struct-&gt;sched_*_entity）的增删改查，以实现对系统任务（task）的调度管理</p>
 <span id="more"></span>
-<p>操作系统：RHEL7.2<br>内核版本：linux-3.10.0-327.el7.x86_64<br>驱动框架：<br>Intel 82580：igb<br>Intel 82571/4：e1000e</p>
-<h1 id="数据结构框图分析"><a href="#数据结构框图分析" class="headerlink" title="数据结构框图分析"></a>数据结构框图分析</h1><p>多队列网卡是以后网卡能力的基本配置，也是性能提升的基础。<br>因此首先分析Intel 82580：igb驱动框架。网卡硬件框架如图1所示，驱动数据结构和数据流关系如图2所示：<br><img src="http://wx1.sinaimg.cn/mw690/6a6ccd8fly1fzl8damuxlj20nx0h2n01.jpg" alt="图1"><p align="center">图1 网卡硬件框架</p></p>
-<p><img src="http://wx4.sinaimg.cn/mw690/6a6ccd8fly1fzl8ddejr0j21790qymzg.jpg" alt="图2"><p align="center">图2 驱动数据结构和数据流关系</p></p>
-<p>图2中黑色箭头表RX数据结构关系，<font color=red>红色箭头</font>表示TX数据结构关系。首先从数据流的角度简要分析：<br><img src="http://wx3.sinaimg.cn/mw690/6a6ccd8fly1fzl9galhi2j20qh0b4q3o.jpg" alt="图3"><p align="center">图3 硬件队列指针</p></p>
-<p>RX：网卡硬件MAC层收到数据后，根据驱动初始化配置好的rx_desc接收缓冲描述符，利用DMA将硬件RX FIFO中的数据拷贝到内核缓冲rx_buffer中，接收缓冲是以内存page页为管理对象。随后经过驱动处理，将rx_buffer中对应page页挂接到skb中，skb为整个内核网络数据流管理的对象。内核协议栈收到skb后针对不同协议要求进行处理，最后将净载荷拷贝至用户层完成RX工作。<br>TX：用户层调用网络send接口，内核将数据拷贝至skb管理的缓冲。随后经过驱动处理，直接将skb-&gt;data对应的内核缓冲以流式DMA映射的方式拿到对应的page页，填充到tx_desc描述符中，并在最后一帧的描述符tx_desc中将EOP(End of Packet)置位，同时更新硬件指针如图3所示。网卡通过硬件指针检测到有待发数据，利用DMA将内核缓冲中的数据拷贝至硬件TX FIFO中发送到对端计算机。</p>
-<h1 id="数据结构详细分析"><a href="#数据结构详细分析" class="headerlink" title="数据结构详细分析"></a>数据结构详细分析</h1><p>下面对驱动中的具体数据结构如图4所示进行分析。由于数据结构多且复杂，转成图4画质较低。<br>图中黑色箭头及①类数字表示RX相关数据结构，<font color=red>红色箭头</font>及❶类数字表示TX相关数据结构。<br><img src="http://wx4.sinaimg.cn/mw690/6a6ccd8fly1fzl8dl4ydpj217b0q5teu.jpg" alt="图4"><p align="center">图4 驱动数据结构</p><br>8核CPU下的82580网卡驱动默认属性如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* set default ring sizes */</span></span><br><span class="line">adapter-&gt;tx_ring_count = IGB_DEFAULT_TXD = <span class="number">256</span>;</span><br><span class="line">adapter-&gt;rx_ring_count = IGB_DEFAULT_RXD = <span class="number">256</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* set default ITR values */</span></span><br><span class="line">adapter-&gt;rx_itr_setting = IGB_DEFAULT_ITR = <span class="number">3</span>;</span><br><span class="line">adapter-&gt;tx_itr_setting = IGB_DEFAULT_ITR = <span class="number">3</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* set default work limits */</span></span><br><span class="line">adapter-&gt;tx_work_limit = IGB_DEFAULT_TX_WORK = <span class="number">128</span>;</span><br><span class="line"></span><br><span class="line">max_rss_queues = IGB_MAX_RX_QUEUES = <span class="number">8</span></span><br><span class="line"></span><br><span class="line">adapter-&gt;rss_queues = <span class="keyword">min_t</span>(u32, max_rss_queues, num_online_cpus()) = <span class="number">8</span></span><br><span class="line"></span><br><span class="line">adapter-&gt;num_rx_queues = adapter-&gt;rss_queues = <span class="number">8</span></span><br><span class="line">adapter-&gt;num_tx_queues = adapter-&gt;rss_queues = <span class="number">8</span></span><br><span class="line"></span><br><span class="line">adapter-&gt;num_q_vectors = numvecs = <span class="number">8</span></span><br></pre></td></tr></table></figure>
-<p>针对每个网卡接口，内核会抽象adapter数据结构，根据82580网卡支持收发各8个硬件队列属性，该adapter包含8个struct igb_q_vector数据结构。<br>RX：<br>① igb_q_vector包含tx，rx各一个struct igb_ring_container，用以维护ring属性；<br>② igb_q_vector包含tx，rx各一个struct igb_ring，用以维护ring具体属性，是整个网卡管理核心数据结构；<br>③ 每个队列对应各自硬件中断，各自igb_q_vector，各自napi_struct数据结构，各自napi poll回调接口以轮询处理网卡数据包；<br>④ rx igb_ring根据网卡属性配置IGB_DEFAULT_RXD = 256分配256个igb_rx_buffer，用以维护rx buffer物理地址及对应page页，填充rx_desc描述符。同时维护skb数据结构，在rx buffer收到数据后，关联skb送入协议栈进行处理；<br>⑤ rx igb_ring根据网卡属性配置IGB_DEFAULT_RXD = 256分配256个adv_rx_desc，用以维护硬件描述符，是软件与硬件交互的关键数据结构；<br>⑥ igb_rx_buffer及adv_rx_desc数据结构通过dma_map_page指向同一page页，为接收硬件DMA数据实体<br>TX：<br>❶ 用户态通过拷贝数据，将数据传入内核协议栈；<br>❷ 协议栈以skb为管理对象，将数据依托skb传入igb_tx_buffer；<br>❸ 驱动将skb-&gt;data以dma_map_single（流式DMA映射 ）方式拿到物理地址，填充adv_tx_desc描述符；</p>
-<h1 id="函数接口调用分析"><a href="#函数接口调用分析" class="headerlink" title="函数接口调用分析"></a>函数接口调用分析</h1><p>在进行下述分析前，先引入几个概念，取自linux-3.10.0-327.el7\Documentation\networking\scaling.txt，这里放上网上找来的部分翻译版本便于快速理解，建议读原文：</p>
+<p>内核版本：linux-4.9.140</p>
+<h1 id="什么是调度器"><a href="#什么是调度器" class="headerlink" title="什么是调度器"></a>什么是调度器</h1><blockquote>
+<p>The scheduling activity is carried out by a process called scheduler. Schedulers are often designed so as to keep all computer resources busy (as in load balancing), allow multiple users to share system resources effectively, or to achieve a target quality-of-service.</p>
+</blockquote>
+<p>如图1，调度器是按照特定的策略高效的利用有限的计算资源<br><img src="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6d1l2w4tj20rb0ekwfc.jpg" alt="图1"><p align="center">图1 调度器</p></p>
+<h2 id="调度对象"><a href="#调度对象" class="headerlink" title="调度对象"></a>调度对象</h2><p>从内核的角度，调度器管理的是使用task struct数据结构描述的调度对象<br>调度对象均使用<code>_do_fork()</code>接口创建，代入不同flag的创建不同属性的调度对象，从应用层的角度表现出的就是线程和进程的区别</p>
 <ul>
-<li><p>RSS: Receive Side Scaling<br>————————————<br>当代的NICs支持多个接收和传输队列，即多队列。接收的时候，一个网卡能够发送不同的包到不同的队列，为了在不同的CPU之间分散处理。<font color=red>NIC针对每一个包，通过一个过滤器来指定这个包属于少数几个流中的一个流。每个流中的数据包被控制在一个单独的接收队列中，而队列轮回的被CPU进行处理</font>。这种机制就叫做RSS。RSS的目标和其他控制技术目的都是为了增加性能。多队列也可以被用于流量优先控制，但那不是这些技术的目的。<br>RSS中的过滤器是一个基于L3和L4层头部的hash函数，例如，基于IP地址和TCP端口的4元组的hash函数。最常见的RSS硬件实现中，使用了128个间接表，其中每个表存储一个队列号(注，网卡的队列数比较少，比如igb是8个，bnx2是5个)。针对某个包而言，使用这个包计算出的hash值（hash是Toeplitz算法）的低7位先确定间接表，再从间接表中的值访问队列。一些高级的NICs允许使用可编程的过滤器来控制包属于哪个队列。例如，绑定TCP端口80的webserver，数据包能被指向他们自己的队列。</p>
+<li><p>进程创建流程<br>fork creates a duplicate copy of the calling process as its child.<br>The exec() family of functions replaces the current process image with a new process image wait and exit<br><img src="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6d1p7hbgj20qn0gyjsq.jpg" alt="图2"><p align="center">图2 进程创建流程</p></p>
 </li>
-<li><p>RPS: Receive Packet Steering<br>————————————<br>RPS，逻辑上是一种以软件的方式来实现RSS。在数据路径上，稍后被调用。介于RSS选择了队列和CPU(这个cpu会处理硬中断)，<font color=red>RPS选择CPU来执行硬件中断处理之后的协议处理。通过把数据包放在目标CPU的backlog队列，并唤醒CPU来处理</font>。RPS相比RSS有几个好处：<br>1） RPS能够被任何NIC使用。<br>2） 软件过滤器能够轻易的被添加，用来hash新的协议。<br>3） 它不会增加硬件设备的中断。尽管，引入了IPIs(inter-processor interrupts)。<br>当一个设备使用 netif_rx() 函数和netif_receive_skb()函数，(从网卡驱动)向网络协议栈传递数据包时，RPS在底半环境（通过软中断来实现的，在硬中断处理函数之后。）中被调用。这2个函数调用get_rps_cpu()函数，来选择应该执行包的队列。决定目标CPU的第一步是基于包的地址和端口（有的协议是2元组，有的协议是4元组）来计算hash值。这个值与这个包的流保持一致。这个hash值要么是由硬件来提供的，<br>要么是由协议栈来计算的。厉害的硬件能够在包的接收描述符中传递hash值，这个值与RSS计算的值是相等的。这个hash值保存在skb-&gt;rx_hash中，并且这个值可以作为流的hash值可以被使用在栈的其他任何地方。每一个接收硬件队列有一个相关的CPU列表，RPS可以将包放到这个队列中进行处理。对于每一个接收到的包，指向这个列表的索引是通过流hash值对列表大小取模来计算的。被指向的CPU是处理 数据包的目标CPU，并且这个包被加到CPU的backlog队列的尾部。最底半处理的最后，IPI被发送到这个包所插到的那个CPU。IPI唤醒远程CPU来处理backlog队列，之后队列中数据包被发送到网络协议栈进行处理。</p>
+<li><p>线程创建流程<br><img src="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6d6puj9nj20hu0itjs2.jpg" alt="图3"><p align="center">图3 线程创建流程</p></p>
 </li>
-<li><p>RFS: Receive Flow Steering<br>————————————<br>RPS只依靠hash来控制数据包，提供了好的负载平衡，但是它没有考虑应用程序的位置(注：这个位置是指程序在哪个cpu上执行)。RFS则考虑到了应用程序的位置。<font color=red>RFS的目标是通过指派应用线程正在运行的CPU来进行数据包处理，以此来增加数据缓存的命中率</font>。RFS依靠RPS的机制插入数据包到指定CPU的backlog队列，并唤醒那个CPU来执行。</p>
+<li><p>线程进程创建原理<br><img src="https://wx4.sinaimg.cn/mw690/6a6ccd8fly1gz6d6tcns7j20hs0p8dk5.jpg" alt="图4"><p align="center">图4 进程线程创建接口</p></p>
+<ul>
+<li><p>User Space</p>
+<ul>
+<li>创建进程（fork）</li>
+<li>创建应用层线程（pthread_create）</li>
+</ul>
 </li>
-<li><p>XPS: Transmit Packet Steering<br>————————————<br>XPS 是一种机制，用来智能的选择多队列设备的队列来发送数据包。为了达到这个目标，从CPU到硬件队列的映射需要被记录。这个映射的目标是专门地分配队列到一个CPU列表，这些CPU列表中的某个CPU来完成队列中的数据传输。这个有两点优势，<font color=red>第一点，设备队列上的锁竞争会被减少，因为只有很少的CPU对相同的队列进行竞争。（如果每个CPU只有自己的传输队列，锁的竞争就完全没有了。）第二点，传输时的缓存不命中的概率就减少，特别是持有sk_buff的数据缓存</font>。<br><img src="http://wx3.sinaimg.cn/mw690/6a6ccd8fly1fzl8f0dpw6j20ty0qodip.jpg" alt="图5"><p align="center">图5 多队列处理框架</p></p>
+<li><p>Kernel Space     </p>
+<ul>
+<li>创建内核层线程（kernel_thread）</li>
+<li>均调用_do_fork，只是flag不一样</li>
+</ul>
+</li>
+<li><p>进程是资源分配的最小单元</p>
+</li>
+<li><p>线程是CPU调度的最小单元（从内核角度，线程可以看作一种特殊的进程）</p>
+</li>
+<li><p>调度对象的本质：进程描述符struct task_struct数据结构中的struct sched_entity se</p>
+</li>
+<li><p>一共包括三类调度实体<br>struct sched_entity se;<br>struct sched_rt_entity rt;<br>struct sched_dl_entity dl;</p>
 </li>
 </ul>
-<p>简而言之，RSS是为了发挥网卡多队列处理性能，RPS则是软件层将数据包分发到多个CPU上进行处理（同时要保证cache一致性）。对于一个多队列的系统，如果RSS已经配置了，导致一个硬件接收队列已经映射到每一个CPU，那么RPS就是多余的和不必要的；如果只有很少的硬件中断队列(比CPU个数少)，每个队列的rps_cpus指向的CPU列表与这个队列的中断CPU共享相同的内存域，那RPS将会是有效的。RFS则是为了增加内核层切换到用户层的cache命中率，XFS同理。网卡多队列处理框架如图5所示。</p>
-<p>RX：<br>① 硬件中断顶半部处理，分队列处理；<br>② 硬件低半部处理；<br>③ napi轮询回调；<br>④ 网卡接收数据处理轮询接口，不同队列接收处理的数据，根据五元组hash值入列到依托RPS(Receive Packet Steering)机制选取的CPU的backlog队列，后续的协议栈处理由该CPU处理；<br>⑤ 在④对应的CPU轮询处理自己的backlog队列，接入协议栈处理；<br>⑥ IP层数据处理，如果在该层插入自定义协议，则可从该层将符合自定义协议的数据包截获，<font color=red>PF_RING就是利用了这个机制将包截获处理</font>；<br>⑦ TCP/UDP/ICMP/IGMP等协议处理。</p>
-<p>硬件接收中断</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-&gt; igb_msix_ring 		 中断服务函数（分队列处理）	</span><br></pre></td></tr></table></figure>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">-&gt; napi_schedule -&gt; napi_schedule_prep		</span><br><span class="line">   检测napi-&gt;state, NAPI_STATE_SCHED是否置位允许napi调度</span><br><span class="line">-&gt; __napi_schedule -&gt; ____napi_schedule 	</span><br><span class="line">   关闭硬件中断，并将该napi-&gt;poll_list添加到全局轮询队列poll_list</span><br><span class="line">-&gt; __raise_softirq_irqoff(NET_RX_SOFTIRQ) 	产生napi软件中断</span><br></pre></td></tr></table></figure>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">-&gt; net_rx_action 							软中断服务函数</span><br><span class="line">   只要全局poll_list队列不为空，则一直轮询处理</span><br><span class="line">   当轮询完成预设目标任务budget，或者<span class="number">2</span>秒轮询超时后强制退出则结束napi轮询，重新使能中断</span><br><span class="line">-&gt; n-&gt;poll -&gt; igb_poll 回调网卡轮询处理接口	</span><br></pre></td></tr></table></figure>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">-&gt; igb_clean_rx_irq</span><br><span class="line">	-&gt; igb_alloc_rx_buffers	</span><br><span class="line">	   判断回收rx_buffer超过IGB_RX_BUFFER_WRITE(<span class="number">16</span>),一次性补充<span class="number">16</span>个buffer</span><br><span class="line">	-&gt; igb_fetch_rx_buffer      申请skb并将rx_buffer数据page挂接到skb</span><br><span class="line">	-&gt; napi_gro_receive		</span><br><span class="line">	   判断网卡是否支持GRO(Generic Segmentation Offload)</span><br><span class="line">	   相对应的有TSO(TCP Segmentation Offload)</span><br><span class="line">	-&gt; napi_skb_finish -&gt; netif_receive_skb</span><br><span class="line">	   使能CONFIG_RPS(Receive Packet Steering)时</span><br><span class="line">	-&gt; get_rps_cpu              依据skb-&gt;hash获取后续传输层协议栈处理target CPU</span><br><span class="line">	-&gt; enqueue_to_backlog -&gt; __skb_queue_tail	</span><br><span class="line">	   将各个队列的skb入列到对应处理target CPU的input_pkt_queue	</span><br></pre></td></tr></table></figure>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">-&gt; ____napi_schedule </span><br><span class="line">-&gt; __raise_softirq_irqoff(NET_RX_SOFTIRQ) 	产生sd-&gt;backlog软件中断</span><br><span class="line">-&gt; net_rx_action                软中断服务函数</span><br><span class="line">-&gt; n-&gt;poll -&gt; process_backlog	回调backlog的轮询处理函数</span><br><span class="line">	-&gt; __skb_dequeue            从队列中出列待处理skb</span><br><span class="line">	-&gt; __netif_receive_skb -&gt; __netif_receive_skb_core 	</span><br><span class="line">	   开始处理网络层skb	</span><br><span class="line">	   根据注册skb-&gt;protocol搜索pt_prev <span class="comment">/* Protocol hook */</span></span><br><span class="line">	-&gt; deliver_skb -&gt; pt_prev-&gt;func 	</span><br></pre></td></tr></table></figure>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">-&gt; ip_rcv               IP层数据处理，net/ipv4/af_inet.c注册</span><br><span class="line">   若注册pf_ring的packet_type，则调用pfring rcv</span><br><span class="line">   prot_hook.func = packet_rcv;</span><br><span class="line">   prot_hook.type = htons(ETH_P_ALL);</span><br><span class="line">-&gt; ip_rcv_finish -&gt; dst_input <span class="comment">/* Input packet from network to transport */</span></span><br><span class="line">-&gt; skb_dst(skb)-&gt;input(skb) </span><br><span class="line">-&gt; ip_local_deliver -&gt; ip_defrag <span class="comment">/* Reassemble IP fragments. */</span></span><br><span class="line">-&gt; ip_local_deliver_finish </span><br><span class="line">   根据注册inet_protos搜索ipprot</span><br><span class="line">   tcp_protocol, udp_protocol, icmp_protocol, igmp_protocol等</span><br><span class="line">   在net/ipv4/af_inet.c，inet_init注册，以tcp为例</span><br><span class="line">-&gt; tcp/udp层 -&gt; ipprot-&gt;handler 			</span><br></pre></td></tr></table></figure>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">-&gt; tcp_v4_rcv(udp_rcv) -&gt; tcp_v4_do_rcv </span><br><span class="line">-&gt; tcp_rcv_state_process </span><br><span class="line">-&gt; <span class="keyword">case</span> TCP_ESTABLISHED: tcp_data_queue </span><br><span class="line">-&gt; tcp_queue_rcv </span><br><span class="line">-&gt; __skb_queue_tail <span class="comment">/* queue a buffer at the list tail */</span></span><br></pre></td></tr></table></figure>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-&gt; napi_complete            结束轮询</span><br><span class="line">-&gt; igb_ring_irq_enable		重新使能硬件中断</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><img src="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6d6w9c76j20nr0hn3za.jpg" alt="图5"><p align="center">图5 进程线程创建原理</p></p>
+<h1 id="如何选择调度器"><a href="#如何选择调度器" class="headerlink" title="如何选择调度器"></a>如何选择调度器</h1><h2 id="调度器框架"><a href="#调度器框架" class="headerlink" title="调度器框架"></a>调度器框架</h2><p>为了使代码可维护性高、解耦，内核代码中大量使用了面向对象的设计思想，在调度器的设计中也不例外。尽管C没有像C++拥有专有的面向对象的语言特性，但并不妨碍C使用面向对象的思想设计框架结构。</p>
+<p>在调度器的框架结构设计中，使用struct中的函数指针（相当于C++中的虚函数表）实现”多态”概念，搭好框架后，只需要按照各自的调度功能需求实现函数指针的接口即可实现不同功能特性的调度器，这样的设计思想和技巧在内核中随处可见。<br><img src="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6d87gw0aj20z60jagpv.jpg" alt="图6"><p align="center">图6 调度器框架</p></p>
+<p>内核中一共实现了五种调度器，按照调度器优先级依次是：stop_sched_class, dl_sched_class, rt_sched_class, fair_sched_class, idle_sched_class</p>
+<p>stop_sched_class和idle_sched_class由内核使用，没有应用层vfs交互调整接口<br>stop_sched_class：在cpu hotplug时使用，用于停止当前cpu的处理任务<br>idle_sched_class：cpu空闲运行idle进程，arm64执汇编指令// WFI may enter a low-power mode</p>
+<p>其中暴露给应用层的调度器分别是：DL, RT, CFS</p>
+<table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">DL</th>
+<th align="center">RT</th>
+<th align="center">CFS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">调度策略</td>
+<td align="center">SCHED_DEADLINE</td>
+<td align="center">SCHED_FIFO，SCHED_RR</td>
+<td align="center">SCHED_NORMAL，SCHED_BATCH，SCHED_IDLE</td>
+</tr>
+<tr>
+<td align="center">内核态优先级</td>
+<td align="center">-1（无优先级）</td>
+<td align="center">0 - 99</td>
+<td align="center">100 - 139 （120 + nice值(-20 ~ 19)）</td>
+</tr>
+</tbody></table>
+<ul>
+<li>SCHED_BATCH策略，用于非交互式任务的批处理，这些任务会在一段时间内不间断地运行</li>
+<li>SCHED_NORMAL策略（在用户空间中称为SCHED_OTHER），适用于用于Linux环境中运行的大多数任务</li>
+<li>SCHED_IDLE策略是为系统中优先级最低的任务设计的，只有在没有其他任务可运行时，这些任务才有机会运行。</li>
+</ul>
+<h2 id="核心数据结构"><a href="#核心数据结构" class="headerlink" title="核心数据结构"></a>核心数据结构</h2><p>为了实现不同调度器的特点，内核采用了红黑树和优先级队列数据结构进行管理，如图7所示：<br><img src="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6d8a214jj20ya0ifacb.jpg" alt="图7"><p align="center">图7 核心数据结构</p></p>
+<h2 id="CFS调度器"><a href="#CFS调度器" class="headerlink" title="CFS调度器"></a>CFS调度器</h2><p>CFS：Completely Fair Scheduler调度器有三要素：priority(nice) → weight → vruntime</p>
+<p>nice值（-20 ~ 19）为应用层进程属性 ，进程nice值越高，表示该进程越“友好”，进程优先级越低，反之则进程优先级越高</p>
+<p>nice值到内核层进程权重的关系为：<br>$$<br>weight = \frac{1024}{1.25^{nice}}<br>$$<br>一般默认属性创建的进程<code>nice = 0</code>，对应的<code>weight = NICE_0_LOAD(1024)</code></p>
+<p>通过计算可以知道，这么设计的初衷，是为了保证每降低进程一个单位nice值，将使其多获得10% 的cpu占用时间</p>
+<p>通过权重值就可以计算调度周期内需要分配给进程的运行时间片<br>$$<br>分配给进程的时间 = \frac{进程的权重}{就绪队列（runqueue）所有进程权重之和} * 调度周期<br>$$<br>注意，CFS调度器下的调度周期并不是固定值，伪代码逻辑如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sched_nr_latency = (sysctl_sched_latency + sysctl_sched_min_granularity – <span class="number">1</span>) / sysctl_sched_min_granularity</span><br><span class="line"><span class="keyword">if</span> (nr_running &gt; sched_nr_latency) &#123;</span><br><span class="line">    sched_period = nr_running  * sched_min_granularity_ns;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">	sched_period = sysctl_sched_latency;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>由于发送流程相对一致、简单，这里只对接口功能进行注释，不做赘述。<br>TX：网络发送流程</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">应用层send -&gt; copy_from_user </span><br><span class="line">-&gt; 内核层skb -&gt; 协议栈 </span><br><span class="line">-&gt; 分队列</span><br><span class="line">-&gt; ndo_start_xmit -&gt; igb_xmit_frame</span><br><span class="line">-&gt; igb_xmit_frame_ring </span><br><span class="line">	-&gt; igb_tx_queue_mapping     根据skb-&gt;queue_mapping获取对应发送队列tx_ring</span><br><span class="line">	-&gt; igb_xmit_frame_ring      skb填充tx_ring-&gt;tx_buffer_info</span><br><span class="line">	-&gt; <span class="function">igb_tso                  <span class="title">TSO</span><span class="params">(TCP Segmentation Offload)</span></span></span><br><span class="line"><span class="function">	-&gt; igb_tx_map				</span></span><br><span class="line"><span class="function">	将skb流式映射dma_map_single填充描述符tx_desc</span></span><br><span class="line"><span class="function">	并在最后一帧的描述符tx_desc中将<span class="title">EOP</span><span class="params">(End of Packet)</span>置位</span></span><br></pre></td></tr></table></figure>
-
-<p>硬件发送完成中断</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-&gt; igb_msix_ring                            中断服务函数（分队列处理）</span><br><span class="line">-&gt; napi_schedule -&gt; napi_schedule_prep		</span><br><span class="line">   检测napi-&gt;state, NAPI_STATE_SCHED是否置位允许napi调度</span><br><span class="line">-&gt; __napi_schedule -&gt; ____napi_schedule 	</span><br><span class="line">   关闭硬件中断，并将该napi-&gt;poll_list添加到全局轮询队列poll_list</span><br><span class="line">-&gt; __raise_softirq_irqoff(NET_RX_SOFTIRQ)   产生napi软件中断</span><br><span class="line">-&gt; net_rx_action                            软中断服务函数</span><br><span class="line">   只要全局poll_list队列不为空，则一直轮询处理</span><br><span class="line">   当轮询完成预设目标任务budget，或者<span class="number">2</span>秒轮询超时后强制退出则结束napi轮询，重新使能中断</span><br><span class="line">-&gt; n-&gt;poll -&gt; igb_poll                      回调网卡轮询处理接口	   </span><br><span class="line">	-&gt; igb_clean_tx_irq                     释放skb，dma_unmap_single</span><br></pre></td></tr></table></figure>
-
-<h1 id="结束语"><a href="#结束语" class="headerlink" title="结束语"></a>结束语</h1><p>本文在对Intel82580网卡驱动分析的基础上，梳理了各部数据结构间的关联关系，总结了网卡收发数据流的处理流程。<br>那么，多队列和CPU中断之间均衡处理关系到底应该如何优化，中断均衡是否能够带来实质性的性能提升，落实到具体实测数据多队列网卡表现又是如何，请看网卡研究二：中断均衡优化。</p>
-<p>PS：在研究之初对网卡队列并没有过多的理解，所以选择了单队列网卡Intel 82574（e1000e）开始分析，其数据结构关系和收发流程与多队列网卡大同小异，在此不做赘述。</p>
+<p>当进程数量nr_running超过sched_nr_latency时，为了保证进程的最小执行时间sysctl_sched_min_granularity（避免因为分配的时间片过小造成频繁的调度开销），会动态调整当前的调度周期<code>sched_period = nr_running * sched_min_granularity_ns</code>；否则，调度周期<code>sched_period = sysctl_sched_latency</code></p>
+<ul>
+<li>进程最小执行时间：/proc/sys/kernel/sched_min_granularity_ns</li>
+<li>CFS调度延迟：/proc/sys/kernel/sched_latency_ns</li>
+</ul>
+<p>在调度算法上，CFS调度器引入了<strong>虚拟运行时间vruntime</strong>的概念，将优先级nice和实时运行时间两个维度通过公式转换到了一个维度<br>$$<br>vruntime(虚拟运行时间) = wall_time (实际运行时间) * \frac{NICE_0_LOAD}{weight}<br>$$<br>$$<br>vruntime(虚拟运行时间) = wall_time (实际运行时间) * \frac{1024}{\frac{1024}{1.25^{nice}}}<br>$$<br>$$<br>vruntime(虚拟运行时间) = wall_time (实际运行时间) * 1.25^{nice}<br>$$</p>
+<blockquote>
+<p>推出: 进程nice越大 → 优先级越低 → vruntime增长越快 → 在相同vruntime下实际占用cpu时间越短<br>              nice = 0时， vruntime(虚拟运行时间)  = wall_time (实际运行时间)</p>
+</blockquote>
+<p>同时，根据上述转换公式，可以得到分配给进程的<strong>虚拟时间片</strong>计算公式<br>$$<br>分配给进程的时间(virtual) = \frac{进程的权重 * 调度周期}{就绪队列（runqueue）所有进程权重之和} * \frac{NICE_0_LOAD}{weight}<br>$$<br>$$<br>分配给进程的时间(virtual) = \frac{调度周期 * NICE_0_LOAD}{就绪队列（runqueue）所有进程权重之和}<br>$$<br>通过上述公式，可以得到分配给进程的虚拟时间片是个与<strong>调度周期相关的固定值</strong>，即在一个调度周期内，该cpu调度队列中的进程任务分配到的<strong>虚拟时间片相同</strong><br>结合上述理论，以单核CPU为例</p>
+<table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">nice</th>
+<th align="center">权重weight</th>
+<th align="center">调度周期period</th>
+<th align="center">真实时间片ideal_runtime</th>
+<th align="center">虚拟时间片</th>
+<th align="center">进程执行1ms后vruntime值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">进程A</td>
+<td align="center">0</td>
+<td align="center">1024</td>
+<td align="center">6ms</td>
+<td align="center">3.3ms</td>
+<td align="center">3.3ms</td>
+<td align="center">1ms</td>
+</tr>
+<tr>
+<td align="center">进程B</td>
+<td align="center">1</td>
+<td align="center">820</td>
+<td align="center">6ms</td>
+<td align="center">2.7ms</td>
+<td align="center">3.3ms</td>
+<td align="center">1.25ms</td>
+</tr>
+</tbody></table>
+<ul>
+<li><p>进程A：</p>
+<p>权重weight = 1024 / 1.250 = 1024</p>
+<p>调度周期period = sysctl_sched_latency * （1 + log1）= sysctl_sched_latency = 6ms</p>
+<p>真实时间片ideal_runtime = 6ms * 1024 / (1024 + 820) = 3.3ms</p>
+<p>虚拟时间片 = 3.3ms * 1.250 = 3.3ms</p>
+<p>真实步进1ms = 虚拟步进1ms * 1.250 = 虚拟步进1ms</p>
+</li>
+<li><p>进程B：</p>
+<p>权重weight = 1024 / 1.251 = 820</p>
+<p>调度周期period = sysctl_sched_latency * （1 + log1）= sysctl_sched_latency = 6ms</p>
+<p>真实时间片ideal_runtime = 6ms * 820 / (1024 + 820) = 2.7ms</p>
+<p>虚拟时间片 = 2.7ms * 1.251 = 3.3ms</p>
+<p>真实步进1ms = 虚拟步进1ms * 1.251 = 虚拟步进1.25ms</p>
+</li>
+</ul>
+<p>如上计算，进程A和B的真实时间片根据nice值（权重weight）分配调度周期，二者分配的虚拟时间片相同；</p>
+<p>在1ms真实步进下，进程B的虚拟步进（1.25ms）大于进程A（1ms），更快的用完分配的虚拟时间片，执行时间更短、更快被换出，也即：nice值越高，占用CPU更短</p>
+<h2 id="RT调度器"><a href="#RT调度器" class="headerlink" title="RT调度器"></a>RT调度器</h2><p>RT：Real Time调度器要素：priority | timeslice（/proc/sys/kernel/sched_rr_timeslice_ms）</p>
+<ul>
+<li>不相同优先级的实时调度线程<br>不论是SCHED_RR还是SCHED_FIFO，高优先级线程均能对低优先级线程实施抢占，且在主动放弃CPU之前不会释放占用</li>
+<li>相同优先级的实时调度线程<br>如果同为SCHED_RR线程，线程之间分享时间片，轮转运行。<br>如果同为SCHED_FIFO线程，其中之一（谁先运行）会一直运行直到到其主动释放占用CPU，另一个才会执行。即同优先级不会分享时间片</li>
+<li>两个分别为SCHED_RR，SCHED_FIFO线程<br>SCHED_RR线程会分享时间片，即时间片用完后会放弃占用CPU，被SCHED_FIFO线程占用但SCHED_FIFO线程占用后不会和SCHED_RR线程分享时间片，会一直运行到其主动释放占用后，SCHED_RR线程才会再次执行</li>
+<li>两个线程一个为实时调用线程，一个为非实时调用线程<br>实时线程不论是何优先级（&gt;0），何种调度方式，都能对非实时线程实施抢占，且不会对非实时线程共享时间片</li>
+</ul>
+<p>另：</p>
+<ul>
+<li><p>Round-Robin调度策略的时间片由/proc/sys/kernel/sched_rr_timeslice_ms决定（timeslice必须是tick倍数(1 / CONFIG_HZ_250 = 4ms)）</p>
+<ul>
+<li>输入为ms，输出为滴答数，即写入的参数单位是ms，读出时的单位是当前系统的jiffies</li>
+</ul>
+</li>
+<li><p>RT进程和普通进程之间存在分配带宽的比例，默认情况是RT:CFS=95:5。</p>
+<ul>
+<li>可通过/proc/sys/kernel/sched_rt_period_us和/proc/sys/kernel/sched_rt_runtime_us来设置</li>
+<li>如果设置sched_rt_runtime_us为-1（慎用），则禁止对RT进程的带宽限制，即如果存在RT进程会占满整个CPU且该CPU不在会有调度CFS进程的机会</li>
+</ul>
+</li>
+</ul>
+<h2 id="DL调度器"><a href="#DL调度器" class="headerlink" title="DL调度器"></a>DL调度器</h2><p>DL：Deadline调度器要素：runtime | deadline | period<br>在period周期内，抵达deadline前，执行runtime时间<br>带宽bw = runtime / period<br>要求1us &lt; runtime &lt;= deadline &lt;= period (if period != 0)</p>
+<p><img src="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6d8ciy19j20eh041dg1.jpg" alt="图8"><p align="center">图8 DL调度器要素</p></p>
+<p>对比在CFS调度器，当任务总数增加时，单个任务其在一个调度周期内所能获得的时间片会相应减少直到最小执行时间sched_min_granularity_ns<br>DL调度中的任务的需求就不会受到系统中其他任务的影响，这个特性是Deadline调度器策略最大的优势</p>
+<p>测试：3个线程绑定到core 6，7，三要素属性分别为：[50, 100, 100]; [50, 100, 100]; [20, 100, 100]，cpu占用情况如图9所示：core6  50%；core7  50%；core6  20%</p>
+<p><img src="https://wx1.sinaimg.cn/mw690/6a6ccd8fly1gz6d8f7c2wj21ep0d9q7y.jpg" alt="图9"><p align="center">图9 DL调度器测试</p></p>
+<h1 id="什么时候发起调度"><a href="#什么时候发起调度" class="headerlink" title="什么时候发起调度"></a>什么时候发起调度</h1><p>调度器并不是管家式的管理方式（由专门进程任务进行管理），而是将调度的判断、换出等操作嵌进了整个内核的运转中</p>
+<p>这里以arm体系结构为例，介绍Arm体系结构相关，并引入介绍“主调度器”和“周期调度器”</p>
+<h2 id="Arm体系结构相关"><a href="#Arm体系结构相关" class="headerlink" title="Arm体系结构相关"></a>Arm体系结构相关</h2><p><img src="https://wx1.sinaimg.cn/mw690/6a6ccd8fly1gz6d8hck0tj20vj0jx76z.jpg" alt="图10"><p align="center">图10 ARMv8异常级别</p></p>
+<ul>
+<li>EL0：应用程序运行（用户空间）</li>
+<li>EL1：操作系统内核和相关功能</li>
+<li>EL2：Hypervisor（虚拟化相关）</li>
+<li>EL3：Noraml world和Secure world的切换 (ARM Trusted Firmware)</li>
+</ul>
+<p><img src="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6dcxba2qj216j0q5juq.jpg" alt="图11"><p align="center">图11 ARMv8异常处理流程</p></p>
+<h2 id="“主调度器”"><a href="#“主调度器”" class="headerlink" title="“主调度器”"></a>“主调度器”</h2><p><img src="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6dczphf8j20mi0gqdgt.jpg" alt="图12"><p align="center">图12 主调度器流程</p></p>
+<h2 id="“周期调度器”"><a href="#“周期调度器”" class="headerlink" title="“周期调度器”"></a>“周期调度器”</h2><p><img src="https://wx2.sinaimg.cn/mw690/6a6ccd8fly1gz6dd27hehj213c09s753.jpg" alt="图13"><p align="center">图13 周期度器流程</p></p>
+<h1 id="调度器如何调度"><a href="#调度器如何调度" class="headerlink" title="调度器如何调度"></a>调度器如何调度</h1><h2 id="上下文切换"><a href="#上下文切换" class="headerlink" title="上下文切换"></a>上下文切换</h2><p><img src="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6dczphf8j20mi0gqdgt.jpg" alt="图12"><p align="center">图14 上下文切换流程</p></p>
+<h1 id="Q-amp-A"><a href="#Q-amp-A" class="headerlink" title="Q &amp; A"></a>Q &amp; A</h1><ol>
+<li><p>主调度器和周期调度器是否冲突？<br>不冲突，只是调度时机不同，相辅相成，互为补充</p>
+</li>
+<li><p>内核任务（ 内核线程，内核系统调用）是否可以被抢占？<br>在使能内核抢占开关CONFIG_PREEMPTION=y后，且满足抢占计数preempt_count == 0（防止抢占嵌套）时，可以被抢占</p>
+</li>
+<li><p>TIF_NEED_RESCHED的内涵？<br>在调度器决策出当前进程需要被换出时设置进程描述符的对应flag，在下个调度时机到来时藉由该flag决定是否启动schedule流程，启动schedule后再由class-&gt;pick_next_task接口返回值决定该进程是否换出</p>
+</li>
+<li><p>何时会设置TIF_NEED_RESCHED标志？<br>通用场景：有进程待唤醒时，当前进程满足被抢占条件；修改正在运行的进程优先级；进程主动放弃cpu（yield）；特殊情况下的强制cpu reschedule<br>针对不同调度器的具体场景：<br>CFS：当前进程时间片耗尽；当前运行进程的调度策略转换成CFS时；<br>DL：下个被pick的进程deadline更小且当前进程可以被迁移时；当前运行进程的调度策略转换成DL时；当前进程runtime耗尽等</p>
+</li>
+<li><p>当一个进程从休眠状态唤醒时，是否会立即被CPU执行？<br>不会。新唤醒的进程会被入列到对应cpu runqueue，同时设置当前进程TIF_NEED_RESCHED，在下个调度时机到来时，启动schedule流程</p>
+</li>
+<li><p>调度器框架的函数指针，分别实现功能是？<br>*next：指向下一个调度器，用于遍历调度器接口时使用，应用场景举例：调度pick下一个任务时<br>*enqueue_task：将task加入对应的调度器数据结构，应用场景举例：创建进程、调整优先级等<br>*dequeue_task：将task从对应的调度器数据结构移除，应用场景举例：进程结束等<br>*pick_next_task：挑选下一个需要换入的task（具体换入策略由各自调度器实现），在触发schedule时执行<br>*put_prev_task：不同调度器有不同实现：cfs：将换出的task，归置到runqueue队尾；dl：则是将当前执行任务归置到可供迁移到其他cpu的红黑树节点上。应用场景举例：调整当前运行进程的优先级时<br>*task_tick：周期调度器中断handler的实现，更新当前进程的时间相关参数（cfs时间片，dl调度器runtime &amp; deadline）并决定是否resched_curr<br>…</p>
+</li>
+</ol>
+<h1 id="工具介绍"><a href="#工具介绍" class="headerlink" title="工具介绍"></a>工具介绍</h1><p>trace-cmd &amp; kernelshark</p>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><p>Linux进程管理 (9)实时调度类分析，以及FIFO和RR对比实验<br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/arnoldlu/p/9025981.html">https://www.cnblogs.com/arnoldlu/p/9025981.html</a><br>Linux进程调度策略<br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/jacklikedogs/p/4029825.html">https://www.cnblogs.com/jacklikedogs/p/4029825.html</a><br>试谈Linux下的线程调度-『Linux 源码解析（一）』<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/58868634">https://zhuanlan.zhihu.com/p/58868634</a><br>Using KernelShark to analyze the real-time scheduler<br><a target="_blank" rel="noopener" href="https://lwn.net/Articles/425583/">https://lwn.net/Articles/425583/</a><br>ftrace利器之trace-cmd和kernelshark<br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/arnoldlu/p/9014365.html">https://www.cnblogs.com/arnoldlu/p/9014365.html</a><br>kernelshark使用说明<br><a target="_blank" rel="noopener" href="https://kernelshark.org/Documentation.html">https://kernelshark.org/Documentation.html</a><br>进程的创建<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/185751680">https://zhuanlan.zhihu.com/p/185751680</a><br>AArch64 Exception and Interrupt Handling<br><a target="_blank" rel="noopener" href="https://developer.arm.com/documentation/100933/0100/">https://developer.arm.com/documentation/100933/0100/</a><br>linux内核同步机制-RCU（1）系列<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/347279156">https://zhuanlan.zhihu.com/p/347279156</a><br>linux程序是如何开始运行的<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/337477747">https://zhuanlan.zhihu.com/p/337477747</a><br>内存屏障（Memory Barrier）究竟是个什么鬼<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/125737864">https://zhuanlan.zhihu.com/p/125737864</a><br>linux调度子系统6 - 周期调度 timer setup<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/363787529">https://zhuanlan.zhihu.com/p/363787529</a><br>CFS调度器（1）-基本原理<br><a target="_blank" rel="noopener" href="http://www.wowotech.net/process_management/447.html">http://www.wowotech.net/process_management/447.html</a></p>
 
       
     </div>
@@ -520,7 +684,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://jxbuaa.github.io/2019/01/%E7%BD%91%E5%8D%A1%E7%A0%94%E7%A9%B6%E4%B8%80%EF%BC%9A%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6%E5%89%96%E6%9E%90/" title="网卡研究一：驱动框架剖析">http://jxbuaa.github.io/2019/01/%E7%BD%91%E5%8D%A1%E7%A0%94%E7%A9%B6%E4%B8%80%EF%BC%9A%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6%E5%89%96%E6%9E%90/</a>
+    <a href="http://jxbuaa.github.io/2021/08/Linux%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%99%A8/" title="Linux进程调度器">http://jxbuaa.github.io/2021/08/Linux%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%99%A8/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>
@@ -535,11 +699,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Driver/" rel="tag"><i class="fa fa-tag"></i> Driver</a>
-          
             <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
           
-            <a href="/tags/NIC/" rel="tag"><i class="fa fa-tag"></i> NIC</a>
+            <a href="/tags/Scheduler/" rel="tag"><i class="fa fa-tag"></i> Scheduler</a>
           
         </div>
       
@@ -567,8 +729,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/01/Hexo_NexT%E4%B8%BB%E9%A2%98%E9%85%8D%E7%BD%AE/" rel="next" title="Hexo_NexT主题配置">
-                <i class="fa fa-chevron-left"></i> Hexo_NexT主题配置
+              <a href="/2020/07/%E6%B5%B7%E6%80%9DHi3519%20uboot%20start.s%E5%88%86%E6%9E%90/" rel="next" title="海思Hi3519 uboot start.s分析">
+                <i class="fa fa-chevron-left"></i> 海思Hi3519 uboot start.s分析
               </a>
             
           </div>
@@ -577,8 +739,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2019/01/RapidIO%E9%80%92%E5%BD%92%E6%9E%9A%E4%B8%BE%E6%B5%81%E7%A8%8B/" rel="prev" title="RapidIO递归枚举流程">
-                RapidIO递归枚举流程 <i class="fa fa-chevron-right"></i>
+              <a href="/2021/08/%E9%9D%A2%E8%AF%95%E9%A2%98%E7%9B%AE%E6%A2%B3%E7%90%86/" rel="prev" title="面试题目梳理">
+                面试题目梳理 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -747,7 +909,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E6%A1%86%E5%9B%BE%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">数据结构框图分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E8%AF%A6%E7%BB%86%E5%88%86%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">数据结构详细分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E6%8E%A5%E5%8F%A3%E8%B0%83%E7%94%A8%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">函数接口调用分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%93%E6%9D%9F%E8%AF%AD"><span class="nav-number">5.</span> <span class="nav-text">结束语</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E8%B0%83%E5%BA%A6%E5%99%A8"><span class="nav-number">2.</span> <span class="nav-text">什么是调度器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B0%83%E5%BA%A6%E5%AF%B9%E8%B1%A1"><span class="nav-number">2.1.</span> <span class="nav-text">调度对象</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%E8%B0%83%E5%BA%A6%E5%99%A8"><span class="nav-number">3.</span> <span class="nav-text">如何选择调度器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B0%83%E5%BA%A6%E5%99%A8%E6%A1%86%E6%9E%B6"><span class="nav-number">3.1.</span> <span class="nav-text">调度器框架</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-number">3.2.</span> <span class="nav-text">核心数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CFS%E8%B0%83%E5%BA%A6%E5%99%A8"><span class="nav-number">3.3.</span> <span class="nav-text">CFS调度器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RT%E8%B0%83%E5%BA%A6%E5%99%A8"><span class="nav-number">3.4.</span> <span class="nav-text">RT调度器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DL%E8%B0%83%E5%BA%A6%E5%99%A8"><span class="nav-number">3.5.</span> <span class="nav-text">DL调度器</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E5%8F%91%E8%B5%B7%E8%B0%83%E5%BA%A6"><span class="nav-number">4.</span> <span class="nav-text">什么时候发起调度</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Arm%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84%E7%9B%B8%E5%85%B3"><span class="nav-number">4.1.</span> <span class="nav-text">Arm体系结构相关</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%80%9C%E4%B8%BB%E8%B0%83%E5%BA%A6%E5%99%A8%E2%80%9D"><span class="nav-number">4.2.</span> <span class="nav-text">“主调度器”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%80%9C%E5%91%A8%E6%9C%9F%E8%B0%83%E5%BA%A6%E5%99%A8%E2%80%9D"><span class="nav-number">4.3.</span> <span class="nav-text">“周期调度器”</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%B0%83%E5%BA%A6%E5%99%A8%E5%A6%82%E4%BD%95%E8%B0%83%E5%BA%A6"><span class="nav-number">5.</span> <span class="nav-text">调度器如何调度</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2"><span class="nav-number">5.1.</span> <span class="nav-text">上下文切换</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Q-amp-A"><span class="nav-number">6.</span> <span class="nav-text">Q &amp; A</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B7%A5%E5%85%B7%E4%BB%8B%E7%BB%8D"><span class="nav-number">7.</span> <span class="nav-text">工具介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-number">8.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
             
 
           </div>
@@ -1312,6 +1474,26 @@
   
 
   
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
   
 
 

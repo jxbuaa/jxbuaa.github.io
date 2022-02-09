@@ -2008,7 +2008,7 @@ pre .javascript .function {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #e938c2;
+  background: #5c2db9;
 }
 .links-of-blogroll {
   font-size: 13px;
@@ -2797,7 +2797,7 @@ pre .javascript .function {
 .header {
   position: relative;
   margin: 0 auto;
-  width: 80%;
+  width: 65%;
 }
 @media (min-width: 768px) and (max-width: 991px) {
   .header {
@@ -2857,7 +2857,7 @@ pre .javascript .function {
   }
 }
 .container .main-inner {
-  width: 80%;
+  width: 65%;
 }
 @media (min-width: 768px) and (max-width: 991px) {
   .container .main-inner {
@@ -2916,7 +2916,7 @@ pre .javascript .function {
   display: none;
 }
 .footer-inner {
-  width: 80%;
+  width: 65%;
   padding-left: 260px;
 }
 @media (min-width: 768px) and (max-width: 991px) {
