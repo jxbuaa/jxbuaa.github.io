@@ -243,7 +243,8 @@ vruntime(虚拟运行时间) = wall\_time (实际运行时间) * 1.25^{nice}
 图9 DL调度器测试
 </p>
 <h1 id="什么时候发起调度">什么时候发起调度</h1>
-<p>调度器并不是管家式的管理方式（由专门进程任务进行管理），而是将调度的判断、换出等操作嵌进了整个内核的运转中 这里以arm体系结构为例，介绍Arm体系结构相关，并引入介绍“主调度器”和“周期调度器”</p>
+<p>调度器并不是管家式的管理方式（由专门进程任务进行管理），而是将调度的判断、换出等操作嵌进了整个内核的运转中</p>
+<p>这里以arm体系结构为例，介绍Arm体系结构相关，并引入介绍“主调度器”和“周期调度器”</p>
 <h2 id="arm体系结构相关">Arm体系结构相关</h2>
 <img src="https://wx1.sinaimg.cn/mw690/6a6ccd8fly1gz6d8hck0tj20vj0jx76z.jpg" alt="图10" />
 <p align="center">
@@ -260,11 +261,19 @@ vruntime(虚拟运行时间) = wall\_time (实际运行时间) * 1.25^{nice}
 图11 ARMv8异常处理流程
 </p>
 <h2 id="主调度器">“主调度器”</h2>
+<ul>
+<li><p>系统调用返回到用户空间</p></li>
+<li><p>中断返回到用户空间</p></li>
+<li><p>中断返回到内核空间，需要内核支持内核抢占</p></li>
+<li><p>重新使能内核抢占时</p></li>
+</ul>
+<p>这些调度点都会检查调度标志位，根据标志位是否置位再决定是否执行调度</p>
 <img src="https://wx3.sinaimg.cn/mw690/6a6ccd8fly1gz6dczphf8j20mi0gqdgt.jpg" alt="图12" />
 <p align="center">
 图12 主调度器流程
 </p>
 <h2 id="周期调度器">“周期调度器”</h2>
+<p>周期调度器在每一个系统tick中断的时刻，对当前CPU的执行任务进行检查是否需要调度，满足条件则将调度标志置位，在下个主动调度的实际触发调度换出</p>
 <img src="https://wx1.sinaimg.cn/large/6a6ccd8fly1gz7jk7wuenj21fl0djq4b.jpg" alt="图13" />
 <p align="center">
 图13 周期度器流程
