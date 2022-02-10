@@ -110,7 +110,7 @@
 <meta property="og:image" content="https://wx1.sinaimg.cn/large/6a6ccd8fly1gz7jk7wuenj21fl0djq4b.jpg">
 <meta property="og:image" content="https://wx1.sinaimg.cn/large/6a6ccd8fly1gz6dd4fqyxj20te0q040z.jpg">
 <meta property="article:published_time" content="2022-02-25T03:00:00.000Z">
-<meta property="article:modified_time" content="2022-02-10T02:51:42.090Z">
+<meta property="article:modified_time" content="2022-02-10T03:14:16.810Z">
 <meta property="article:author" content="X小Mickey">
 <meta property="article:tag" content="Linux">
 <meta property="article:tag" content="Scheduler">
@@ -706,7 +706,7 @@ vruntime(虚拟运行时间) = wall\_time (实际运行时间) * 1.25^{nice}
 图12 主调度器流程
 </p>
 <h2 id="周期调度器">“周期调度器”</h2>
-<p>周期调度器在每一个系统tick中断的时刻，对当前CPU的执行任务进行检查是否需要调度，满足条件则将调度标志置位，在下个主动调度的实际触发调度换出</p>
+<p>周期调度器在每一个系统tick中断，对当前CPU的执行任务进行检查是否需要调度，满足条件则将调度标志置位，在下个主动调度的时机触发调度换出</p>
 <img src="https://wx1.sinaimg.cn/large/6a6ccd8fly1gz7jk7wuenj21fl0djq4b.jpg" alt="图13" />
 <p align="center">
 图13 周期度器流程
